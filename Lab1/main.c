@@ -1,7 +1,7 @@
 /**
  * main.c
  *
- * ECE-3849 Lab 0 code submission
+ * ECE-3849 Lab 1 code submission
  * Submitted XX-XX-2019
  *
  * Hardware:
@@ -31,6 +31,27 @@ volatile uint32_t gTime = 0;    // Time [units of 0.01s]
 int main(void)
 {
     IntMasterDisable();
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIO?);
+    GPIOPinTypeADC(...);          // GPIO setup for analog input AIN3
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0); // initialize ADC peripherals
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
+    // ADC clock
+    uint32_t pll_frequency = SysCtlFrequencyGet(CRYSTAL_FREQUENCY);
+    uint32_t pll_divisor = (pll_frequency - 1) / (16 * ADC_SAMPLING_RATE) + 1; //round up
+    ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+    ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+    ADCSequenceDisable(...);      // choose ADC1 sequence 0; disable before configuring
+    ADCSequenceConfigure(...);    // specify the "Always" trigger
+    ADCSequenceStepConfigure(...);// in the 0th step, sample channel 3 (AIN3)
+                                  // enable interrupt, and make it the end of sequence
+    ADCSequenceEnable(...);       // enable the sequence.  it is now sampling
+    ADCIntEnable(...);            // enable sequence 0 interrupt in the ADC1 peripheral
+    IntPrioritySet(...);          // set ADC1 sequence 0 interrupt priority
+    IntEnable(...);               // enable ADC1 sequence 0 interrupt in int. controller
+
+
 
     // Enable FPU and permit ISRs to use it
     FPUEnable();
