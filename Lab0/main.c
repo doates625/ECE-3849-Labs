@@ -67,7 +67,7 @@ int main(void)
     GrContextFontSet(&sContext, &g_sFontFixed6x8);
 
     // Initialize buttons
-    // ButtonInit(); // NO BUTTONS YET
+    // ButtonInit(); // NO BUTTONS YET***
     IntMasterEnable();
 
     // Local variables
