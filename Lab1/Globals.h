@@ -12,5 +12,6 @@
 
 extern volatile uint32_t gSystemClock;
 extern volatile uint32_t gAdcReading;
+extern volatile uint32_t gTime;
 
 #endif /* GLOBALS_H_ */
