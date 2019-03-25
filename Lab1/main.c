@@ -31,13 +31,14 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/adc.h"
 #include "sysctl_pll.h"
-#include "buttons.h"
+// #include "buttons.h"
 
-// Global variables
+#define BUTTON_SCAN_RATE 200    // [Hz] button scanning interrupt rate
+#define BUTTON_INT_PRIORITY 32  // button interrupt priority (higher number is lower priority)
+
 volatile uint32_t gSystemClock = 0;
-volatile uint32_t gAdcReading = 0;
 volatile uint32_t gTime = 0;
-volatile uint32_t gADCErrors++;
+
 // Main Function
 int main(void)
 {

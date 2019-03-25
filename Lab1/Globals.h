@@ -10,8 +10,12 @@
 
 #include <stdint.h>
 
+#define ADC_BUFFER_SIZE 2048 // size must be a power of 2
+
+extern volatile int32_t gADCBufferIndex;
+extern volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];
 extern volatile uint32_t gSystemClock;
-extern volatile uint32_t gAdcReading;
 extern volatile uint32_t gTime;
+extern volatile uint32_t gADCErrors;
 
 #endif /* GLOBALS_H_ */
