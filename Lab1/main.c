@@ -91,8 +91,8 @@ int main(void)
     ADCSequenceStepConfigure(ADC1_BASE, 0, 0, ADC_CTL_CH3 | ADC_CTL_IE | ADC_CTL_END);
     ADCSequenceEnable(ADC1_BASE, 0);        // Enable after configuring
     ADCIntEnable(ADC1_BASE, 0);             // Enable sequence 0 interrupt in the ADC1 peripheral
-    IntPrioritySet(INT_ADC1SS0_TM4C123, 0); // Set ADC1 sequence 0 interrupt priority
-    IntEnable(INT_ADC1SS0_TM4C123);         // Enable ADC1 sequence 0 interrupt
+    IntPrioritySet(INT_ADC1SS0, 0); // Set ADC1 sequence 0 interrupt priority
+    IntEnable(INT_ADC1SS0);         // Enable ADC1 sequence 0 interrupt
 
     IntMasterEnable();
 
