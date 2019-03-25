@@ -37,7 +37,7 @@
 volatile uint32_t gSystemClock = 0;
 volatile uint32_t gAdcReading = 0;
 volatile uint32_t gTime = 0;
-
+volatile uint32_t gADCErrors++;
 // Main Function
 int main(void)
 {

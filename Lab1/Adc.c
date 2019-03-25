@@ -2,7 +2,8 @@
  * Adc.c
  *
  *  Created on: Mar 23, 2019
- *      Author: doate
+ *      Author: Daniel Oates
+ *              Matthew Hagan
  */
 
 #include "Adc.h"
@@ -19,9 +20,15 @@
 #include <stdbool.h>
 
 // ADC ISR
-void AdcIsr(void)
+void ADC_ISR(void)
 {
     ADCIntClear(ADC1_BASE, 0);
-    // TODO: Read ADC into global variable
+    if (ADC1_OSTAT_R & ADC_OSTAT_OV0) { // check for ADC FIFO overflow
+        gADCErrors++;                   // count errors
+        ADC1_OSTAT_R = ADC_OSTAT_OV0;   // clear overflow condition
+    }
+    gADCBuffer[
+               gADCBufferIndex = ADC_BUFFER_WRAP(gADCBufferIndex + 1)
+               ] = <...>;               // read sample from the ADC1 sequence 0 FIFO
     gAdcReading++;
 }
