@@ -197,13 +197,22 @@ int main(void)
         GrContextForegroundSet(&sContext, ClrBlack);
         GrRectFill(&sContext, &rectFullScreen);
 
+        // Draw division lines
+        uint32_t divIndex;
+        for(divIndex = 4; divIndex < LCD_HORIZONTAL_MAX; divIndex += 20)
+        {
+            GrContextForegroundSet(&sContext, ClrDimGray);
+            GrLineDrawH(&sContext, 0, LCD_HORIZONTAL_MAX-1, divIndex);
+            GrLineDrawV(&sContext, divIndex, 0, LCD_HORIZONTAL_MAX-1);
+        }
+
+
         // Draw sample pixels to LCD
         uint32_t pixelIndex;
         for(pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX-1; pixelIndex++)
         {
             uint32_t nextIndex = pixelIndex+1;
             GrContextForegroundSet(&sContext, ClrYellow);
-            // GrPixelDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex]);
             GrLineDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex], nextIndex, gPixelYCoords[nextIndex]);
         }
 
