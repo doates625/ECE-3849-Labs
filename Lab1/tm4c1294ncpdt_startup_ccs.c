@@ -22,7 +22,6 @@
 //
 //*****************************************************************************
 
-#include <Adc.h>
 #include <stdint.h>
 
 //*****************************************************************************
@@ -34,7 +33,8 @@ void ResetISR(void);
 static void NmiSR(void);
 static void FaultISR(void);
 static void IntDefaultHandler(void);
-void ButtonISR(void);
+void ADC_ISR(void);
+void Button_ISR(void);
 
 //*****************************************************************************
 //
@@ -105,7 +105,7 @@ void (* const g_pfnVectors[])(void) =
     IntDefaultHandler,                      // ADC Sequence 2
     IntDefaultHandler,                      // ADC Sequence 3
     IntDefaultHandler,                      // Watchdog timer
-    ButtonISR,                              // Timer 0 subtimer A
+    Button_ISR,                             // Timer 0 subtimer A
     IntDefaultHandler,                      // Timer 0 subtimer B
     IntDefaultHandler,                      // Timer 1 subtimer A
     IntDefaultHandler,                      // Timer 1 subtimer B

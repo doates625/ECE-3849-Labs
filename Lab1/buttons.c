@@ -17,7 +17,6 @@
 #include "driverlib/adc.h"
 #include "sysctl_pll.h"
 #include "buttons.h"
-#include "Globals.h"
 
 // public globals
 volatile uint32_t gButtons = 0; // debounced button state, one per bit in the lowest bits
@@ -29,6 +28,7 @@ uint32_t gADCSamplingRate;      // [Hz] actual ADC sampling rate
 void ButtonInit(void)
 {
     // initialize a general purpose timer for periodic interrupts
+    /*
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     TimerDisable(TIMER0_BASE, TIMER_BOTH);
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
@@ -39,6 +39,7 @@ void ButtonInit(void)
     // initialize interrupt controller to respond to timer interrupts
     IntPrioritySet(INT_TIMER0A, BUTTON_INT_PRIORITY);
     IntEnable(INT_TIMER0A);
+    */
     /*
     // GPIO PJ0 and PJ1 = EK-TM4C1294XL buttons 1 and 2
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
@@ -157,8 +158,10 @@ void ButtonISR(void) {
         running = !running;
     }
     */
+    /*
     if (running) {
         if (tic) gTime++; // increment time every other ISR call
         tic = !tic;
     }
+    */
 }
