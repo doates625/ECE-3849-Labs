@@ -36,6 +36,10 @@ const uint8_t BUTTON_INT_PRIORITY = 32;         // Button ISR priority
 const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
 const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
 const uint32_t BUTTON_INT_FREQUENCY = 200;      // Button sample frequency [Hz]
+const uint32_t ADC_OFFSET = 2048;               // ADC 0V offset
+const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
+const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
+const uint32_t ADC_BITS = 12;                   // ADC bit count
 
 // Global Variables
 volatile uint32_t gSystemClockFrequency = 0;    // System clock frequency [Hz]
@@ -43,6 +47,14 @@ volatile uint32_t gTimeMilliseconds = 0;        // System time counter [ms]
 volatile int32_t gADCBufferIndex = 0;           // ADC buffer read index
 volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];  // ADC readings buffer
 volatile uint32_t gADCErrors = 0;               // ADC overflow count
+uint32_t gPixelYCoords[LCD_HORIZONTAL_MAX];     // Oscilloscope pixel y-coordinates
+int32_t gTrigAdcIndex = 0;                      // Trigger ADC buffer index
+
+// Circularly wraps ADC buffer index to valid range
+void ADCIndexWrap(volatile int32_t* index)
+{
+    (*index) &= (ADC_BUFFER_SIZE - 1);
+}
 
 // ADC ISR
 void ADC_ISR(void)
@@ -58,7 +70,7 @@ void ADC_ISR(void)
 
     // Increment ADC buffer index and read into buffer
     gADCBufferIndex++;
-    gADCBufferIndex &= (ADC_BUFFER_SIZE - 1);
+    ADCIndexWrap(&gADCBufferIndex);
     gADCBuffer[gADCBufferIndex] = ADC1_SSFIFO0_R & ADC_SSFIFO0_DATA_M;
 }
 
@@ -132,11 +144,68 @@ int main(void)
     // Graphics loop
     while (1)
     {
+
+        // Find trigger location
+        int32_t startIndex = gADCBufferIndex - (LCD_HORIZONTAL_MAX / 2);
+        ADCIndexWrap(&startIndex);
+        int32_t endIndex = startIndex - (ADC_BUFFER_SIZE / 2);
+        ADCIndexWrap(&startIndex);
+        int32_t testIndex = startIndex;
+        bool prevHigh = false;
+        while (true)
+        {
+            // Check for trigger condition
+            bool currentLow = gADCBuffer[testIndex] < ADC_OFFSET;
+            if (currentLow & prevHigh) break;
+            prevHigh = !currentLow;
+
+            // Decrement trigger index
+            testIndex--;
+            ADCIndexWrap(&testIndex);
+            if (testIndex == endIndex)
+            {
+                testIndex = startIndex;
+                break;
+            }
+        }
+        gTrigAdcIndex = testIndex;
+
+        // Calculate voltage scale
+        float voltsPerDiv = 1.0f;
+        float pixelPerAdc = (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) * voltsPerDiv);
+
+        // Copy into local pixel coordinate buffer
+        startIndex = gTrigAdcIndex - (LCD_HORIZONTAL_MAX / 2);
+        ADCIndexWrap(&startIndex);
+        endIndex = gTrigAdcIndex + (LCD_HORIZONTAL_MAX / 2);
+        ADCIndexWrap(&endIndex);
+        int32_t copyIndex = startIndex;
+        while (true)
+        {
+            // Calculate pixel coordinate
+            int32_t pixelIndex = copyIndex - startIndex;
+            ADCIndexWrap(&pixelIndex);
+            gPixelYCoords[pixelIndex] = (int)(LCD_VERTICAL_MAX / 2) - (int)(pixelPerAdc * ((int)gADCBuffer[copyIndex] - (int)ADC_OFFSET));
+
+            // Increment index
+            copyIndex++;
+            ADCIndexWrap(&copyIndex);
+            if (copyIndex == endIndex) break;
+        }
+
         // Fill screen with black
         GrContextForegroundSet(&sContext, ClrBlack);
         GrRectFill(&sContext, &rectFullScreen);
 
-        // Write more things to LCD...
+        // Draw sample pixels to LCD
+        uint32_t pixelIndex;
+        for(pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX-1; pixelIndex++)
+        {
+            uint32_t nextIndex = pixelIndex+1;
+            GrContextForegroundSet(&sContext, ClrYellow);
+            // GrPixelDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex]);
+            GrLineDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex], nextIndex, gPixelYCoords[nextIndex]);
+        }
 
         // Flush LCD frame buffer
         GrFlush(&sContext);
