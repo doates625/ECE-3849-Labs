@@ -29,6 +29,7 @@
 
 // Macros
 #define ADC_BUFFER_SIZE 2048
+#define BUTTON_FIFO_SIZE 11
 
 // Constants
 const uint8_t ADC_INT_PRIORITY = 0;             // ADC ISR priority
@@ -44,47 +45,22 @@ const uint32_t ADC_BITS = 12;                   // ADC bit count
 // Global Variables
 volatile uint32_t gSystemClockFrequency = 0;    // System clock frequency [Hz]
 volatile uint32_t gTimeMilliseconds = 0;        // System time counter [ms]
-volatile int32_t gADCBufferIndex = 0;           // ADC buffer read index
-volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];  // ADC readings buffer
+volatile int32_t gADCBufferIndex = 0;           // ADC FIFO read index
+volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];  // ADC readings FIFO
 volatile uint32_t gADCErrors = 0;               // ADC overflow count
+volatile int8_t gButtonFifoHead = 0;            // Button FIFO head
+volatile int8_t gButtonFifoTail = 0;            // Button FIFO tail
+volatile uint8_t gButtonFifo[BUTTON_FIFO_SIZE]; // Button presses FIFO
+
 uint32_t gPixelYCoords[LCD_HORIZONTAL_MAX];     // Oscilloscope pixel y-coordinates
 int32_t gTrigAdcIndex = 0;                      // Trigger ADC buffer index
 
-// Circularly wraps ADC buffer index to valid range
-void ADCIndexWrap(volatile int32_t* index)
-{
-    (*index) &= (ADC_BUFFER_SIZE - 1);
-}
-
-// ADC ISR
-void ADC_ISR(void)
-{
-    // Clear ADC interrupt flag
-    ADC1_ISC_R |= ADC_ISC_IN0;
-
-    // Count ADC FIFO overflows
-    if (ADC1_OSTAT_R & ADC_OSTAT_OV0) {
-        gADCErrors++;
-        ADC1_OSTAT_R = ADC_OSTAT_OV0;
-    }
-
-    // Increment ADC buffer index and read into buffer
-    gADCBufferIndex++;
-    ADCIndexWrap(&gADCBufferIndex);
-    gADCBuffer[gADCBufferIndex] = ADC1_SSFIFO0_R & ADC_SSFIFO0_DATA_M;
-}
-
-// Button ISR
-void Button_ISR(void)
-{
-    // Clear Timer interrupt flag
-    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
-
-    // TODO Actually read buttons
-
-    // Increment millisecond timer
-    gTimeMilliseconds += 5;
-}
+// Function Templates
+void ADCIndexWrap(volatile int32_t* index);
+void ADC_ISR(void);
+void Button_ISR(void);
+uint8_t ButtonFifoPut(uint8_t val);
+uint8_t ButtonFifoGet(uint8_t *val);
 
 // Main Function
 int main(void)
@@ -116,12 +92,7 @@ int main(void)
     ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
     ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
 
-    // Configure GPIO Buttons
-
-    // LaunchPad buttons 1 and 2 (PJ0 and PJ1)
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
-    GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    GPIOPadConfigSet(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+    // Configure BoosterPack GPIO
 
     // BoosterPack buttons 1 and 2 (PH1 and PK6)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
@@ -131,13 +102,11 @@ int main(void)
     GPIOPinTypeGPIOInput(GPIO_PORTK_BASE, GPIO_PIN_6);
     GPIOPadConfigSet(GPIO_PORTK_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
-    // Configure BoosterPack JoyStick
-
-    // Horizontal-X (Analog AIN13, GPIO PD2)
+    // JoyStick Horizontal-X (Analog AIN13, GPIO PD2)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     GPIOPinTypeADC(GPIO_PORTD_BASE, GPIO_PIN_2);
 
-    // Vertical-Y (Analog AIN17, GPIO PK1)
+    // JoyStick Vertical-Y (Analog AIN17, GPIO PK1)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
     GPIOPinTypeADC(GPIO_PORTK_BASE, GPIO_PIN_1);
 
@@ -243,7 +212,88 @@ int main(void)
             GrLineDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex], nextIndex, gPixelYCoords[nextIndex]);
         }
 
+        // Print GPIO buttons (debug)
+
+
         // Flush LCD frame buffer
         GrFlush(&sContext);
     }
+}
+
+// Circularly wraps ADC buffer index to valid range
+void ADCIndexWrap(volatile int32_t* index)
+{
+    (*index) &= (ADC_BUFFER_SIZE - 1);
+}
+
+// ADC ISR
+void ADC_ISR(void)
+{
+    // Clear ADC interrupt flag
+    ADC1_ISC_R |= ADC_ISC_IN0;
+
+    // Count ADC FIFO overflows
+    if (ADC1_OSTAT_R & ADC_OSTAT_OV0) {
+        gADCErrors++;
+        ADC1_OSTAT_R = ADC_OSTAT_OV0;
+    }
+
+    // Increment ADC buffer index and read into buffer
+    gADCBufferIndex++;
+    ADCIndexWrap(&gADCBufferIndex);
+    gADCBuffer[gADCBufferIndex] = ADC1_SSFIFO0_R & ADC_SSFIFO0_DATA_M;
+}
+
+// Button ISR
+void Button_ISR(void)
+{
+    // Clear Timer interrupt flag
+    TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+
+    // Read GPIO buttons
+    uint8_t buttons = 0;
+    buttons |= (~GPIOPinRead(GPIO_PORTH_BASE, 0xff) & GPIO_PIN_1) >> 1; // BoosterPack Button 1
+    buttons |= (~GPIOPinRead(GPIO_PORTK_BASE, 0xff) & GPIO_PIN_6) >> 5; // BoosterPack Button 2
+
+    // Push buttons to FIFO
+    if (buttons != 0)
+    {
+        ButtonFifoPut(buttons);
+    }
+
+    // Increment millisecond timer
+    gTimeMilliseconds += 5;
+}
+
+// Puts value into FIFO (returns 1 if not full)
+uint8_t ButtonFifoPut(uint8_t val)
+{
+    int8_t newTail = gButtonFifoTail;
+    if (newTail >= BUTTON_FIFO_SIZE)
+    {
+        newTail = 0;
+    }
+    if (gButtonFifoHead != newTail)
+    {
+        gButtonFifo[gButtonFifoTail] = val;
+        gButtonFifoTail = newTail;
+        return 1;
+    }
+    return 0;
+}
+
+// Gets value from FIFO (returns 1 if not empty)
+uint8_t ButtonFifoGet(uint8_t *val)
+{
+    if (gButtonFifoHead != gButtonFifoTail)
+    {
+        *val = gButtonFifo[gButtonFifoHead];
+        gButtonFifoHead++;
+        if (gButtonFifoHead >= BUTTON_FIFO_SIZE)
+        {
+            gButtonFifoHead = 0;
+        }
+        return 1;
+    }
+    return 0;
 }
