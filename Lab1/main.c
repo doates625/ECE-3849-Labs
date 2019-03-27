@@ -80,6 +80,8 @@ void Button_ISR(void)
     // Clear Timer interrupt flag
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
+    // TODO Actually read buttons
+
     // Increment millisecond timer
     gTimeMilliseconds += 5;
 }
@@ -94,15 +96,52 @@ int main(void)
     FPUEnable();
     FPULazyStackingEnable();
 
-    // Initialize system clock to 120 MHz
-    gSystemClockFrequency = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
-
     // Initialize LCD driver
     Crystalfontz128x128_Init();
     Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);
     tContext sContext;
     GrContextInit(&sContext, &g_sCrystalfontz128x128);
     GrContextFontSet(&sContext, &g_sFontFixed6x8);
+
+    // Configure clocks
+
+    // Initialize system clock to 120 MHz
+    gSystemClockFrequency = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
+
+    // ADC Clock Configuration
+    uint32_t pll_frequency = SysCtlFrequencyGet(CRYSTAL_FREQUENCY);
+    uint32_t pll_divisor = (pll_frequency - 1) / (16 * ADC_INT_FREQUENCY) + 1;
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
+    ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+    ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+
+    // Configure GPIO Buttons
+
+    // LaunchPad buttons 1 and 2 (PJ0 and PJ1)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+    GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+    GPIOPadConfigSet(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+
+    // BoosterPack buttons 1 and 2 (PH1 and PK6)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
+    GPIOPinTypeGPIOInput(GPIO_PORTH_BASE, GPIO_PIN_1);
+    GPIOPadConfigSet(GPIO_PORTH_BASE, GPIO_PIN_1, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
+    GPIOPinTypeGPIOInput(GPIO_PORTK_BASE, GPIO_PIN_6);
+    GPIOPadConfigSet(GPIO_PORTK_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+
+    // Configure BoosterPack JoyStick
+
+    // Horizontal-X (Analog AIN13, GPIO PD2)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+    GPIOPinTypeADC(GPIO_PORTD_BASE, GPIO_PIN_2);
+
+    // Vertical-Y (Analog AIN17, GPIO PK1)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
+    GPIOPinTypeADC(GPIO_PORTK_BASE, GPIO_PIN_1);
+
+    // Configure interrupts
 
     // Configure Timer0A for button ISR
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
@@ -114,19 +153,9 @@ int main(void)
     IntPrioritySet(INT_TIMER0A, BUTTON_INT_PRIORITY);
     IntEnable(INT_TIMER0A);
 
-    // Initialize ADC
+    // Configure ADC1 for sampler ISR
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
     GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
-
-    // ADC clock configuration
-    uint32_t pll_frequency = SysCtlFrequencyGet(CRYSTAL_FREQUENCY);
-    uint32_t pll_divisor = (pll_frequency - 1) / (16 * ADC_INT_FREQUENCY) + 1;
-    ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
-    ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
-
-    // Configure ADC for ADC ISR
     ADCSequenceDisable(ADC1_BASE, 0);
     ADCSequenceConfigure(ADC1_BASE, 0, ADC_TRIGGER_ALWAYS, 0);
     ADCSequenceStepConfigure(ADC1_BASE, 0, 0, ADC_CTL_CH3 | ADC_CTL_IE | ADC_CTL_END);
@@ -137,9 +166,6 @@ int main(void)
 
     // Enable interrupts after configuration
     IntMasterEnable();
-
-    // Local variables
-    tRectangle rectFullScreen = {0, 0, GrContextDpyWidthGet(&sContext)-1, GrContextDpyHeightGet(&sContext)-1};
 
     // Graphics loop
     while (1)
@@ -195,6 +221,7 @@ int main(void)
 
         // Fill screen with black
         GrContextForegroundSet(&sContext, ClrBlack);
+        tRectangle rectFullScreen = {0, 0, GrContextDpyWidthGet(&sContext)-1, GrContextDpyHeightGet(&sContext)-1};
         GrRectFill(&sContext, &rectFullScreen);
 
         // Draw division lines
