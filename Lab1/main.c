@@ -16,6 +16,7 @@
 // Dependencies
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "sysctl_pll.h"
 #include "inc/hw_memmap.h"
 #include "inc/tm4c1294ncpdt.h"
@@ -42,7 +43,7 @@ const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
 const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
 const uint32_t ADC_BITS = 12;                   // ADC bit count
 
-// Global Variables
+// Volatile Global Variables
 volatile uint32_t gSystemClockFrequency = 0;    // System clock frequency [Hz]
 volatile uint32_t gTimeMilliseconds = 0;        // System time counter [ms]
 volatile int32_t gADCBufferIndex = 0;           // ADC FIFO read index
@@ -51,7 +52,10 @@ volatile uint32_t gADCErrors = 0;               // ADC overflow count
 volatile int8_t gButtonFifoHead = 0;            // Button FIFO head
 volatile int8_t gButtonFifoTail = 0;            // Button FIFO tail
 volatile uint8_t gButtonFifo[BUTTON_FIFO_SIZE]; // Button presses FIFO
+volatile uint32_t gButtonPressCount = 0;        // Button press count
 
+// Non-volatile Global Variables
+uint8_t gTrigState = 0;                         // Trigger state (0 = Rising, 1 = Falling)
 uint32_t gPixelYCoords[LCD_HORIZONTAL_MAX];     // Oscilloscope pixel y-coordinates
 int32_t gTrigAdcIndex = 0;                      // Trigger ADC buffer index
 
@@ -139,6 +143,22 @@ int main(void)
     // Graphics loop
     while (1)
     {
+        // Read button commands
+        uint8_t buttons;
+        while(ButtonFifoGet(&buttons))
+        {
+            // Handle trigger state
+            if(buttons & (1 << 0))
+            {
+                gTrigState = 0;  // Rising
+            }
+            else if(buttons & (1 << 1))
+            {
+                gTrigState = 1; // Falling
+            }
+
+            // Handle other states...
+        }
 
         // Find trigger location
         int32_t startIndex = gADCBufferIndex - (LCD_HORIZONTAL_MAX / 2);
@@ -150,9 +170,10 @@ int main(void)
         while (true)
         {
             // Check for trigger condition
-            bool currentLow = gADCBuffer[testIndex] < ADC_OFFSET;
-            if (currentLow & prevHigh) break;
-            prevHigh = !currentLow;
+            bool currentHigh = gADCBuffer[testIndex] > ADC_OFFSET;
+            if(gTrigState == 0 && prevHigh && !currentHigh) break;
+            if(gTrigState == 1 && !prevHigh && currentHigh) break;
+            prevHigh = currentHigh;
 
             // Decrement trigger index
             testIndex--;
@@ -202,7 +223,6 @@ int main(void)
             GrLineDrawV(&sContext, divIndex, 0, LCD_HORIZONTAL_MAX-1);
         }
 
-
         // Draw sample pixels to LCD
         uint32_t pixelIndex;
         for(pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX-1; pixelIndex++)
@@ -212,7 +232,27 @@ int main(void)
             GrLineDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex], nextIndex, gPixelYCoords[nextIndex]);
         }
 
+        // Print text to LCD
+        GrContextForegroundSet(&sContext, ClrWhite);
+
         // Print GPIO buttons (debug)
+        /*
+        char buttonStr[12];
+        sprintf(buttonStr, "B = ");
+        uint8_t b;
+        for(b = 0; b < 8; b++)
+        {
+            if (buttons & (1 << b))
+            {
+                buttonStr[11 - b] = '1';
+            }
+            else
+            {
+                buttonStr[11 - b] = '0';
+            }
+        }
+        */
+        // GrStringDraw(&sContext, buttonStr, sizeof(buttonStr), /*x*/ 9, /*y*/ 113, /*opaque*/ false);
 
 
         // Flush LCD frame buffer
@@ -256,10 +296,13 @@ void Button_ISR(void)
     buttons |= (~GPIOPinRead(GPIO_PORTK_BASE, 0xff) & GPIO_PIN_6) >> 5; // BoosterPack Button 2
 
     // Push buttons to FIFO
-    if (buttons != 0)
+    static uint8_t oldButtons = 0;
+    if (buttons != 0 && buttons != oldButtons)
     {
         ButtonFifoPut(buttons);
+        gButtonPressCount++;
     }
+    oldButtons = buttons;
 
     // Increment millisecond timer
     gTimeMilliseconds += 5;
@@ -268,7 +311,7 @@ void Button_ISR(void)
 // Puts value into FIFO (returns 1 if not full)
 uint8_t ButtonFifoPut(uint8_t val)
 {
-    int8_t newTail = gButtonFifoTail;
+    int8_t newTail = gButtonFifoTail + 1;
     if (newTail >= BUTTON_FIFO_SIZE)
     {
         newTail = 0;
