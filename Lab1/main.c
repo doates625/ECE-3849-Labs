@@ -2,7 +2,7 @@
  * main.c
  *
  * ECE-3849 Lab 1 code submission
- * Submitted XX-XX-2019
+ * Submitted 3-28-2019
  *
  * Hardware:
  * - EK-TM4C1294XL LaunchPad
