@@ -60,6 +60,7 @@ volatile uint32_t gButtonPressCount = 0;        // Button press count
 uint8_t gTrigState = 0;                         // Trigger state (0 = Rising, 1 = Falling)
 uint32_t gPixelYCoords[LCD_HORIZONTAL_MAX];     // Oscilloscope pixel y-coordinates
 int32_t gTrigAdcIndex = 0;                      // Trigger ADC buffer index
+uint8_t gVoltScaleState = 3;                    // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
 
 // Function Templates
 void ADCIndexWrap(volatile int32_t* index);
@@ -154,19 +155,37 @@ int main(void)
     {
         // Read button commands
         uint8_t buttons;
-        while(ButtonFifoGet(&buttons))
+        while (ButtonFifoGet(&buttons))
         {
             // Handle trigger state
-            if(buttons & (1 << 0))
+            if (buttons & (1 << 0))
             {
-                gTrigState = 0;  // Rising
+                // BoosterPack Button 1 -> Rising Trigger
+                gTrigState = 0;
             }
-            else if(buttons & (1 << 1))
+            else if (buttons & (1 << 1))
             {
-                gTrigState = 1; // Falling
+                // BoosterPack Button 2 -> Falling Trigger
+                gTrigState = 1;
             }
 
-            // Handle other states...
+            // Handle voltage scale
+            if (buttons & (1 << 4))
+            {
+                // JoyStick Up -> Increase Voltage scale
+                if (gVoltScaleState < 3)
+                {
+                    gVoltScaleState++;
+                }
+            }
+            if (buttons & (1 << 5))
+            {
+                // JoyStick Down -> Decrease Voltage scale
+                if (gVoltScaleState > 0)
+                {
+                    gVoltScaleState--;
+                }
+            }
         }
 
         // Find trigger location
@@ -196,7 +215,23 @@ int main(void)
         gTrigAdcIndex = testIndex;
 
         // Calculate voltage scale
-        float voltsPerDiv = 1.0f;
+        float voltsPerDiv;
+        switch (gVoltScaleState)
+        {
+        case 0:
+            voltsPerDiv = 0.1f;
+            break;
+        case 1:
+            voltsPerDiv = 0.2f;
+            break;
+        case 2:
+            voltsPerDiv = 0.5f;
+            break;
+        case 3:
+        default:
+            voltsPerDiv = 1.0f;
+            break;
+        }
         float pixelPerAdc = (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) * voltsPerDiv);
 
         // Copy into local pixel coordinate buffer
