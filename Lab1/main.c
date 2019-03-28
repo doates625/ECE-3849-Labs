@@ -61,6 +61,8 @@ uint8_t gTrigState = 0;                         // Trigger state (0 = Rising, 1 
 uint32_t gPixelYCoords[LCD_HORIZONTAL_MAX];     // Oscilloscope pixel y-coordinates
 int32_t gTrigAdcIndex = 0;                      // Trigger ADC buffer index
 uint8_t gVoltScaleState = 3;                    // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
+uint32_t gCpuCountUnloaded = 0;                 // CPU unloaded count (CPU load estimation)
+uint32_t gCpuCountLoaded = 0;                   // CPU loaded count (CPU load estimation)
 
 // Function Templates
 void ADCIndexWrap(volatile int32_t* index);
@@ -68,6 +70,7 @@ void ADC_ISR(void);
 void Button_ISR(void);
 uint8_t ButtonFifoPut(uint8_t val);
 uint8_t ButtonFifoGet(uint8_t *val);
+uint32_t CpuLoadCount();
 
 // Main Function
 int main(void)
@@ -118,6 +121,15 @@ int main(void)
     ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
 
     // Configure interrupts
+
+    // Configure Timer3A for CPU load estimation
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
+    TimerDisable(TIMER3_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER3_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER3_BASE, TIMER_A, gSystemClockFrequency / 100);
+
+    // Get unloaded CPU count
+    gCpuCountUnloaded = CpuLoadCount();
 
     // Configure Timer0A for button ISR
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
@@ -279,25 +291,12 @@ int main(void)
         // Print text to LCD
         GrContextForegroundSet(&sContext, ClrWhite);
 
-        // Print GPIO buttons (debug)
-        /*
-        char buttonStr[12];
-        sprintf(buttonStr, "B = ");
-        uint8_t b;
-        for(b = 0; b < 8; b++)
-        {
-            if (buttons & (1 << b))
-            {
-                buttonStr[11 - b] = '1';
-            }
-            else
-            {
-                buttonStr[11 - b] = '0';
-            }
-        }
-        */
-        // GrStringDraw(&sContext, buttonStr, sizeof(buttonStr), /*x*/ 9, /*y*/ 113, /*opaque*/ false);
-
+        // Estimate and print CPU load
+        gCpuCountLoaded = CpuLoadCount();
+        float cpuLoad = 1.0f - ((float)gCpuCountLoaded)/((float)gCpuCountUnloaded);
+        char cpuLoadStr[20];
+        snprintf(cpuLoadStr, sizeof(cpuLoadStr), "CPU Load: %.1f%%", cpuLoad * 100.0f);
+        GrStringDraw(&sContext, cpuLoadStr, sizeof(cpuLoadStr), /*x*/ 9, /*y*/ 113, /*opaque*/ false);
 
         // Flush LCD frame buffer
         GrFlush(&sContext);
@@ -417,4 +416,17 @@ uint8_t ButtonFifoGet(uint8_t *val)
         return 1;
     }
     return 0;
+}
+
+// Counter for CPU load estimation using TIMER3A
+uint32_t CpuLoadCount()
+{
+    uint32_t count = 0;
+    TimerIntClear(TIMER3_BASE, TIMER_TIMA_TIMEOUT);
+    TimerEnable(TIMER3_BASE, TIMER_A);
+    while (!(TimerIntStatus(TIMER3_BASE, false) & TIMER_TIMA_TIMEOUT))
+    {
+        count++;
+    }
+    return count;
 }
