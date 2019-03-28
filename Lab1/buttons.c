@@ -27,8 +27,8 @@ uint32_t gADCSamplingRate;      // [Hz] actual ADC sampling rate
 // initialize all button and joystick handling hardware
 void ButtonInit(void)
 {
-    // initialize a general purpose timer for periodic interrupts
     /*
+    // initialize a general purpose timer for periodic interrupts
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     TimerDisable(TIMER0_BASE, TIMER_BOTH);
     TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
@@ -39,8 +39,7 @@ void ButtonInit(void)
     // initialize interrupt controller to respond to timer interrupts
     IntPrioritySet(INT_TIMER0A, BUTTON_INT_PRIORITY);
     IntEnable(INT_TIMER0A);
-    */
-    /*
+
     // GPIO PJ0 and PJ1 = EK-TM4C1294XL buttons 1 and 2
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
     GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE, GPIO_PIN_0 | GPIO_PIN_1);
@@ -151,8 +150,10 @@ void ButtonISR(void) {
     uint32_t presses = ~old_buttons & gButtons;   // detect button presses (transitions from not pressed to pressed)
     presses |= ButtonAutoRepeat();      // autorepeat presses if a button is held long enough
     */
+    /*
     static bool tic = false;
     static bool running = true;
+    */
     /*
     if (presses & 1) { // EK-TM4C1294XL button 1 pressed
         running = !running;

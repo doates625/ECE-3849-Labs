@@ -42,6 +42,8 @@ const uint32_t ADC_OFFSET = 2048;               // ADC 0V offset
 const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
 const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
 const uint32_t ADC_BITS = 12;                   // ADC bit count
+const uint32_t JOYSTICK_POS_THRESHOLD = 3595;   // JoyStick ADC positive threshold
+const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative threshold
 
 // Volatile Global Variables
 volatile uint32_t gSystemClockFrequency = 0;    // System clock frequency [Hz]
@@ -83,19 +85,6 @@ int main(void)
     GrContextInit(&sContext, &g_sCrystalfontz128x128);
     GrContextFontSet(&sContext, &g_sFontFixed6x8);
 
-    // Configure clocks
-
-    // Initialize system clock to 120 MHz
-    gSystemClockFrequency = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
-
-    // ADC Clock Configuration
-    uint32_t pll_frequency = SysCtlFrequencyGet(CRYSTAL_FREQUENCY);
-    uint32_t pll_divisor = (pll_frequency - 1) / (16 * ADC_INT_FREQUENCY) + 1;
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
-    ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
-    ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
-
     // Configure BoosterPack GPIO
 
     // BoosterPack buttons 1 and 2 (PH1 and PK6)
@@ -114,6 +103,19 @@ int main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
     GPIOPinTypeADC(GPIO_PORTK_BASE, GPIO_PIN_1);
 
+    // Configure clocks
+
+    // Initialize system clock to 120 MHz
+    gSystemClockFrequency = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
+
+    // ADC Clock Configuration
+    uint32_t pll_frequency = SysCtlFrequencyGet(CRYSTAL_FREQUENCY);
+    uint32_t pll_divisor = (pll_frequency - 1) / (16 * ADC_INT_FREQUENCY) + 1;
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
+    ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+    ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+
     // Configure interrupts
 
     // Configure Timer0A for button ISR
@@ -125,6 +127,13 @@ int main(void)
     TimerEnable(TIMER0_BASE, TIMER_BOTH);
     IntPrioritySet(INT_TIMER0A, BUTTON_INT_PRIORITY);
     IntEnable(INT_TIMER0A);
+
+    // Configure ADC0 for JoyStick
+    ADCSequenceDisable(ADC0_BASE, 0);
+    ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
+    ADCSequenceStepConfigure(ADC0_BASE, 0, 0, ADC_CTL_CH13);
+    ADCSequenceStepConfigure(ADC0_BASE, 0, 1, ADC_CTL_CH17 | ADC_CTL_IE | ADC_CTL_END);
+    ADCSequenceEnable(ADC0_BASE, 0);
 
     // Configure ADC1 for sampler ISR
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
@@ -290,10 +299,44 @@ void Button_ISR(void)
     // Clear Timer interrupt flag
     TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 
+    // Buttons BitMap:
+    // 0 -> BoosterPack Button 1
+    // 1 -> BoosterPack Button 2
+    // 2 -> JoyStick Right
+    // 3 -> JoyStick Left
+    // 4 -> JoyStick Up
+    // 5 -> JoyStick Down
+    // 6-7 (empty)
+
     // Read GPIO buttons
     uint8_t buttons = 0;
     buttons |= (~GPIOPinRead(GPIO_PORTH_BASE, 0xff) & GPIO_PIN_1) >> 1; // BoosterPack Button 1
     buttons |= (~GPIOPinRead(GPIO_PORTK_BASE, 0xff) & GPIO_PIN_6) >> 5; // BoosterPack Button 2
+
+    // Read JoyStick ADCs
+    uint32_t joystickADCs[2];
+    ADCProcessorTrigger(ADC0_BASE, 0);
+    while(!ADCIntStatus(ADC0_BASE, 0, false));
+    ADCSequenceDataGet(ADC0_BASE, 0, joystickADCs);
+    ADCIntClear(ADC0_BASE, 0);
+
+    // Map JoyStick to 'buttons'
+    if(joystickADCs[0] > JOYSTICK_POS_THRESHOLD)
+    {
+        buttons |= (1 << 2);
+    }
+    else if(joystickADCs[0] < JOYSTICK_NEG_THRESHOLD)
+    {
+        buttons |= (1 << 3);
+    }
+    if(joystickADCs[1] > JOYSTICK_POS_THRESHOLD)
+    {
+        buttons |= (1 << 4);
+    }
+    else if(joystickADCs[1] < JOYSTICK_NEG_THRESHOLD)
+    {
+        buttons |= (1 << 5);
+    }
 
     // Push buttons to FIFO
     static uint8_t oldButtons = 0;
