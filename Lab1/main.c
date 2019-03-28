@@ -39,11 +39,11 @@ const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency 
 const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
 const uint32_t BUTTON_INT_FREQUENCY = 200;      // Button sample frequency [Hz]
 const uint32_t ADC_OFFSET = 2048;               // ADC 0V offset
-const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
 const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
 const uint32_t ADC_BITS = 12;                   // ADC bit count
 const uint32_t JOYSTICK_POS_THRESHOLD = 3595;   // JoyStick ADC positive threshold
 const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative threshold
+const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
 
 // Volatile Global Variables
 volatile uint32_t gSystemClockFrequency = 0;    // System clock frequency [Hz]
@@ -290,6 +290,26 @@ int main(void)
 
         // Print text to LCD
         GrContextForegroundSet(&sContext, ClrWhite);
+
+        // Print Voltage Scale
+        char voltScaleStr[10];
+        switch (gVoltScaleState)
+        {
+        case 0:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "100mV");
+            break;
+        case 1:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "200mV");
+            break;
+        case 2:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "500mV");
+            break;
+        case 3:
+        default:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V");
+            break;
+        }
+        GrStringDraw(&sContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
 
         // Estimate and print CPU load
         gCpuCountLoaded = CpuLoadCount();
