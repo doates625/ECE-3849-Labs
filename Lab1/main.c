@@ -285,7 +285,10 @@ int main(void)
         {
             uint32_t nextIndex = pixelIndex+1;
             GrContextForegroundSet(&sContext, ClrYellow);
-            GrLineDraw(&sContext, pixelIndex, gPixelYCoords[pixelIndex], nextIndex, gPixelYCoords[nextIndex]);
+            GrLineDraw(&sContext,
+                       pixelIndex,
+                       gPixelYCoords[pixelIndex],
+                       nextIndex, gPixelYCoords[nextIndex]);
         }
 
         // Print text to LCD
