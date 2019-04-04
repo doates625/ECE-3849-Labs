@@ -165,6 +165,7 @@ void ButtonClockFunc()
  * Waveform task
  * - Detects trigger in ADC buffer
  * - Copies trigger-centered waveform to gWaveformBuffer
+ * - Triggers processing task
  */
 void WaveformTaskFunc(UArg arg1, UArg arg2)
 {
@@ -185,12 +186,13 @@ void WaveformTaskFunc(UArg arg1, UArg arg2)
         ADCIndexWrap(&startIndex);
         int32_t trigIndex = startIndex;
         bool prevHigh = false;
+        uint8_t trigState = gTrigState;
         while (true)
         {
             // Check for trigger condition
             bool currentHigh = gADCBuffer[trigIndex] > ADC_OFFSET;
-            if(gTrigState == 0 && prevHigh && !currentHigh) break;
-            if(gTrigState == 1 && !prevHigh && currentHigh) break;
+            if(trigState == 0 && prevHigh && !currentHigh) break;
+            if(trigState == 1 && !prevHigh && currentHigh) break;
             prevHigh = currentHigh;
 
             // Decrement trigger index
@@ -289,6 +291,51 @@ void ButtonTaskFunc(UArg arg1, UArg arg2)
 
         // Increment millisecond timer
         gTimeMilliseconds += 5;
+    }
+}
+
+/**
+ * User input task
+ * - Updates state variables from button Bailbox input
+ */
+void UserInputTaskFunc(UArg arg1, UArg arg2)
+{
+    uint8_t buttons;
+
+    while (1)
+    {
+        // Pend on button mailbox
+        Mailbox_pend(ButtonMailbox, &buttons, BIOS_WAIT_FOREVER);
+
+        // Handle trigger state
+        if (buttons & (1 << 0))
+        {
+            // BoosterPack Button 1 -> Rising Trigger
+            gTrigState = 0;
+        }
+        else if (buttons & (1 << 1))
+        {
+            // BoosterPack Button 2 -> Falling Trigger
+            gTrigState = 1;
+        }
+
+        // Handle voltage scale
+        if (buttons & (1 << 4))
+        {
+            // JoyStick Up -> Increase Voltage scale
+            if (gVoltScaleState < 3)
+            {
+                gVoltScaleState++;
+            }
+        }
+        if (buttons & (1 << 5))
+        {
+            // JoyStick Down -> Decrease Voltage scale
+            if (gVoltScaleState > 0)
+            {
+                gVoltScaleState--;
+            }
+        }
     }
 }
 

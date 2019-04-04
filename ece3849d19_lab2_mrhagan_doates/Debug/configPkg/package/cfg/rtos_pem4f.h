@@ -40,6 +40,9 @@ extern const ti_sysbios_knl_Semaphore_Handle semTriggerDisplayTask;
 #include <ti/sysbios/knl/Task.h>
 extern const ti_sysbios_knl_Task_Handle DisplayTask;
 
+#include <ti/sysbios/knl/Task.h>
+extern const ti_sysbios_knl_Task_Handle UserInputTask;
+
 extern int xdc_runtime_Startup__EXECFXN__C;
 
 extern int xdc_runtime_Startup__RESETFXN__C;
