@@ -23,6 +23,7 @@
 #include <ti/sysbios/knl/Task.h>
 
 // General Header Files
+#include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "sysctl_pll.h"
@@ -32,24 +33,34 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 #include "driverlib/adc.h"
+#include "Crystalfontz128x128_ST7735.h"
 
 // Macros
 #define ADC_BUFFER_SIZE 2048
 #define BUTTON_FIFO_SIZE 11
 
 // Constants
-const uint32_t CRYSTAL_FREQUENCY = 25000000; // Crystal oscillator frequency [Hz]
+const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
 const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
+const uint32_t ADC_OFFSET = 2048;               // ADC 0V offset
+const uint32_t ADC_BITS = 12;                   // ADC bit count
+const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
+const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
 const uint32_t JOYSTICK_POS_THRESHOLD = 3595;   // JoyStick ADC positive threshold
 const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative threshold
 
 // Shared Global Variables
-volatile uint32_t gSystemClockFrequency = 0;    // System clock frequency [Hz]
-volatile uint32_t gTimeMilliseconds = 0;        // System time counter [ms]
-volatile int32_t gADCBufferIndex = 0;           // ADC FIFO read index
-volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];  // ADC readings FIFO
-volatile uint32_t gADCErrors = 0;               // ADC overflow count
-volatile uint32_t gButtonPressCount = 0;        // Button press count
+volatile uint32_t gSystemClockFrequency = 0;            // System clock frequency [Hz]
+volatile uint32_t gTimeMilliseconds = 0;                // System time counter [ms]
+volatile int32_t gADCBufferIndex = 0;                   // ADC FIFO read index
+volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // ADC readings FIFO
+volatile uint32_t gADCErrors = 0;                       // ADC overflow count
+volatile uint32_t gWaveformBuffer[LCD_HORIZONTAL_MAX];  // ADC waveform buffer
+volatile uint32_t gPixelBuffer[LCD_HORIZONTAL_MAX];     // Pixel coordinates of waveform
+volatile uint32_t gButtonPressCount = 0;                // Button press count
+volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Rising, 1 = Falling)
+volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
+tContext gContext;                                      // Graphics context handle
 
 // Function Prototypes
 void ADCIndexWrap(volatile int32_t* index);
@@ -70,6 +81,12 @@ int main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC1);
     ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
     ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
+
+    // Initialize LCD driver
+    Crystalfontz128x128_Init();
+    Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);
+    GrContextInit(&gContext, &g_sCrystalfontz128x128);
+    GrContextFontSet(&gContext, &g_sFontFixed6x8);
 
     // Configure BoosterPack GPIO
 
@@ -144,13 +161,10 @@ void ButtonClockFunc()
     Semaphore_post(semTriggerButtonScan);
 }
 
-/*
- * The Waveform Task (highest priority) should also block on a Semaphore. When signaled,
- it should search for trigger in the ADC buffer, copy the triggered waveform into the waveform
- buffer, signal the Processing Task, and block again. This is the highest priority task to make sure
- the trigger search completes before the ADC overwrites the buffer. Protect access to the shared
- waveform buffer, if necessary
- * - Globally enables interrupts once
+/**
+ * Waveform task
+ * - Detects trigger in ADC buffer
+ * - Copies trigger-centered waveform to gWaveformBuffer
  */
 void WaveformTaskFunc(UArg arg1, UArg arg2)
 {
@@ -158,21 +172,63 @@ void WaveformTaskFunc(UArg arg1, UArg arg2)
     IntMasterEnable();
     gADCErrors = 0;
 
+    // Waveform copying loop
     while (1)
     {
+        // Wait for trigger from processing task
         Semaphore_pend(semTriggerWaveformTask, BIOS_WAIT_FOREVER);
-    }
 
-    /*
-     Semaphore_pend();//TODO : Add processing task that the semaphore pends on
-     <search for trigger in ADC buffer>
-     <copy waveform>
-     Semaphore_post();//TODO : Add processingTask that the semaphore posts on
-     */
+        // Find trigger location
+        int32_t startIndex = gADCBufferIndex - (LCD_HORIZONTAL_MAX / 2);
+        ADCIndexWrap(&startIndex);
+        int32_t endIndex = startIndex - (ADC_BUFFER_SIZE / 2);
+        ADCIndexWrap(&startIndex);
+        int32_t trigIndex = startIndex;
+        bool prevHigh = false;
+        while (true)
+        {
+            // Check for trigger condition
+            bool currentHigh = gADCBuffer[trigIndex] > ADC_OFFSET;
+            if(gTrigState == 0 && prevHigh && !currentHigh) break;
+            if(gTrigState == 1 && !prevHigh && currentHigh) break;
+            prevHigh = currentHigh;
+
+            // Decrement trigger index
+            trigIndex--;
+            ADCIndexWrap(&trigIndex);
+            if (trigIndex == endIndex)
+            {
+                trigIndex = startIndex;
+                break;
+            }
+        }
+
+        // Copy into waveform buffer
+        startIndex = trigIndex - (LCD_HORIZONTAL_MAX / 2);
+        ADCIndexWrap(&startIndex);
+        endIndex = trigIndex + (LCD_HORIZONTAL_MAX / 2);
+        ADCIndexWrap(&endIndex);
+        int32_t copyIndex = startIndex;
+        while (true)
+        {
+            // Copy single reading to waveform buffer
+            int32_t pixelIndex = copyIndex - startIndex;
+            ADCIndexWrap(&pixelIndex);
+            gWaveformBuffer[pixelIndex] = gADCBuffer[copyIndex];
+
+            // Increment index
+            copyIndex++;
+            ADCIndexWrap(&copyIndex);
+            if (copyIndex == endIndex) break;
+        }
+
+        // Trigger processing task
+        Semaphore_post(semTriggerProcessingTask);
+    }
 }
 
 /**
- * Button scanning tasl
+ * Button scanning task
  * - Triggered by button clock
  * - Posts to button mailbox
  */
@@ -233,6 +289,122 @@ void ButtonTaskFunc(UArg arg1, UArg arg2)
 
         // Increment millisecond timer
         gTimeMilliseconds += 5;
+    }
+}
+
+/**
+ * Display task
+ * - Writes data from gPixelBuffer to LCD display
+ */
+void DisplayTaskFunc(UArg arg1, UArg arg2)
+{
+    while (1)
+    {
+        // Wait for trigger from ProcessingTask
+        Semaphore_pend(semTriggerDisplayTask, BIOS_WAIT_FOREVER);
+
+        // Fill screen with black
+        GrContextForegroundSet(&gContext, ClrBlack);
+        tRectangle rectFullScreen = {0, 0, GrContextDpyWidthGet(&gContext)-1, GrContextDpyHeightGet(&gContext)-1};
+        GrRectFill(&gContext, &rectFullScreen);
+
+        // Draw division lines
+        uint32_t divIndex;
+        for(divIndex = 4; divIndex < LCD_HORIZONTAL_MAX; divIndex += 20)
+        {
+            GrContextForegroundSet(&gContext, ClrDimGray);
+            GrLineDrawH(&gContext, 0, LCD_HORIZONTAL_MAX-1, divIndex);
+            GrLineDrawV(&gContext, divIndex, 0, LCD_HORIZONTAL_MAX-1);
+        }
+
+        // Draw sample pixels to LCD
+        uint32_t pixelIndex;
+        for(pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX-1; pixelIndex++)
+        {
+            uint32_t nextIndex = pixelIndex+1;
+            GrContextForegroundSet(&gContext, ClrYellow);
+            GrLineDraw(&gContext,
+                       pixelIndex,
+                       gPixelBuffer[pixelIndex],
+                       nextIndex, gPixelBuffer[nextIndex]);
+        }
+
+        // Print text to LCD
+        GrContextForegroundSet(&gContext, ClrWhite);
+
+        // Print Voltage Scale
+        char voltScaleStr[10];
+        uint8_t voltScaleState = gVoltScaleState;
+        switch (voltScaleState)
+        {
+        case 0:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "100mV");
+            break;
+        case 1:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "200mV");
+            break;
+        case 2:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "500mV");
+            break;
+        case 3:
+        default:
+            snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V");
+            break;
+        }
+        GrStringDraw(&gContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
+
+        // Flush LCD frame buffer
+        GrFlush(&gContext);
+    }
+}
+
+/**
+ * Waveform processing task
+ * - Converts gWaveformBuffer to pixel coordinates
+ * - Posts pixel coordinates in gPixelBuffer
+ * - Triggers display task and processing task
+ */
+void ProcessingTaskFunc(UArg arg1, UArg arg2)
+{
+    while (1)
+    {
+        // Wait for trigger from Waveform task
+        Semaphore_pend(semTriggerProcessingTask, BIOS_WAIT_FOREVER);
+
+        // Calculate voltage scale
+        float voltsPerDiv;
+        switch (gVoltScaleState)
+        {
+        case 0:
+            voltsPerDiv = 0.1f;
+            break;
+        case 1:
+            voltsPerDiv = 0.2f;
+            break;
+        case 2:
+            voltsPerDiv = 0.5f;
+            break;
+        case 3:
+        default:
+            voltsPerDiv = 1.0f;
+            break;
+        }
+        float pixelPerAdc =
+                (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) *
+                        voltsPerDiv);
+
+        // Convert gWaveformBuffer to gPixelBuffer
+        int32_t pixelIndex;
+        for (pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX; pixelIndex++)
+        {
+            gPixelBuffer[pixelIndex] =
+                    (int)(LCD_VERTICAL_MAX / 2) -
+                    (int)(pixelPerAdc * ((int)gWaveformBuffer[pixelIndex] - (int)ADC_OFFSET));
+        }
+
+        // Trigger display and waveform tasks
+        Semaphore_post(semTriggerWaveformTask);
+        Semaphore_post(semTriggerDisplayTask);
     }
 }
 

@@ -213,9 +213,16 @@ main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sys
 main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h
 main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Event.h
 main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Semaphore.h
+main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Semaphore.h
+main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Task.h
+main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Semaphore.h
+main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Task.h
 main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/BIOS.h
 main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/package/BIOS_RtsGateProxy.h
 main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Task.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/stdio.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_ti_config.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/linkage.h
 main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/stdbool.h
 main.obj: ../sysctl_pll.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/inc/hw_memmap.h
@@ -224,6 +231,8 @@ main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/dri
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/sysctl.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpio.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/adc.h
+main.obj: ../Crystalfontz128x128_ST7735.h
+main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/grlib/grlib.h
 
 ../main.c: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/std.h: 
@@ -438,9 +447,16 @@ C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Q
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Assert.h: 
 C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Event.h: 
 C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Semaphore.h: 
+C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Semaphore.h: 
+C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Task.h: 
+C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Semaphore.h: 
+C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Task.h: 
 C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/BIOS.h: 
 C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/package/BIOS_RtsGateProxy.h: 
 C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/knl/Task.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/stdio.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_ti_config.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/linkage.h: 
 D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/stdbool.h: 
 ../sysctl_pll.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/inc/hw_memmap.h: 
@@ -449,3 +465,5 @@ C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/int
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/sysctl.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpio.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/adc.h: 
+../Crystalfontz128x128_ST7735.h: 
+C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/grlib/grlib.h: 

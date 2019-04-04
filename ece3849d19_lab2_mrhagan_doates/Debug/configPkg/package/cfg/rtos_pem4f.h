@@ -28,6 +28,18 @@ extern const ti_sysbios_knl_Semaphore_Handle semTriggerWaveformTask;
 #include <ti/sysbios/knl/Mailbox.h>
 extern const ti_sysbios_knl_Mailbox_Handle ButtonMailbox;
 
+#include <ti/sysbios/knl/Semaphore.h>
+extern const ti_sysbios_knl_Semaphore_Handle semTriggerProcessingTask;
+
+#include <ti/sysbios/knl/Task.h>
+extern const ti_sysbios_knl_Task_Handle ProcessingTask;
+
+#include <ti/sysbios/knl/Semaphore.h>
+extern const ti_sysbios_knl_Semaphore_Handle semTriggerDisplayTask;
+
+#include <ti/sysbios/knl/Task.h>
+extern const ti_sysbios_knl_Task_Handle DisplayTask;
+
 extern int xdc_runtime_Startup__EXECFXN__C;
 
 extern int xdc_runtime_Startup__RESETFXN__C;
