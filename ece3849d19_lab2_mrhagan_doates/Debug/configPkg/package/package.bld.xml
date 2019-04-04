@@ -7,7 +7,7 @@
         <srcFile name="package/cfg/rtos_pem4f.c"/>
     </sources>
     <configscripts>
-        <srcFile name="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849_lab2_mrhagan_doates/rtos.cfg"/>
+        <srcFile name="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates/rtos.cfg"/>
     </configscripts>
     <makefiles>
         <srcFile name="package.mak" src="package.bld"/>
@@ -44,7 +44,7 @@
         isPartial="false"
         xCfgScript="package/cfg/rtos_pem4f.cfg"
         xCfgPrefix="package/cfg/rtos_pem4f"
-        cfgScript="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849_lab2_mrhagan_doates/rtos.cfg"
+        cfgScript="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates/rtos.cfg"
         cfgArgs="null"
         />
     </configurations>
@@ -56,7 +56,7 @@
         profile="release"
         xCfgScript="package/cfg/rtos_pem4f.cfg"
         xCfgPrefix="package/cfg/rtos_pem4f"
-        cfgScript="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849_lab2_mrhagan_doates/rtos.cfg"
+        cfgScript="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates/rtos.cfg"
         cfgArgs="null"
         />
     </executables>

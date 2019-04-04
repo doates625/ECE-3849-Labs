@@ -16,7 +16,7 @@ BIOS_INC  = -I"C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/"
 
 TARGET_INC = -I"C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/"
 
-INCS = $(BIOS_INC) $(TARGET_INC)  --include_path="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849_lab2_mrhagan_doates" --include_path="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849_lab2_mrhagan_doates" --include_path="C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b" --include_path="C:/TI/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/posix" --include_path="D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include" 
+INCS = $(BIOS_INC) $(TARGET_INC)  --include_path="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates" --include_path="C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates" --include_path="C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b" --include_path="C:/TI/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/posix" --include_path="D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include" 
 
 CC = D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armcl -c $(CCOPTS) -I D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include
 ASM = D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armcl -c $(CCOPTS) -I D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include

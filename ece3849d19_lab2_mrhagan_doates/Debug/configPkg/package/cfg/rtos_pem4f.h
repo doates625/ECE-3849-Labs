@@ -7,11 +7,26 @@
 
 #include <xdc/std.h>
 
-#include <ti/sysbios/knl/Task.h>
-extern const ti_sysbios_knl_Task_Handle task0;
-
 #include <ti/sysbios/family/arm/m3/Hwi.h>
-extern const ti_sysbios_family_arm_m3_Hwi_Handle m3Hwi0;
+extern const ti_sysbios_family_arm_m3_Hwi_Handle AdcHwi;
+
+#include <ti/sysbios/knl/Clock.h>
+extern const ti_sysbios_knl_Clock_Handle ButtonClock;
+
+#include <ti/sysbios/knl/Semaphore.h>
+extern const ti_sysbios_knl_Semaphore_Handle semTriggerButtonScan;
+
+#include <ti/sysbios/knl/Task.h>
+extern const ti_sysbios_knl_Task_Handle ButtonTask;
+
+#include <ti/sysbios/knl/Task.h>
+extern const ti_sysbios_knl_Task_Handle WaveformTask;
+
+#include <ti/sysbios/knl/Semaphore.h>
+extern const ti_sysbios_knl_Semaphore_Handle semTriggerWaveformTask;
+
+#include <ti/sysbios/knl/Mailbox.h>
+extern const ti_sysbios_knl_Mailbox_Handle ButtonMailbox;
 
 extern int xdc_runtime_Startup__EXECFXN__C;
 
