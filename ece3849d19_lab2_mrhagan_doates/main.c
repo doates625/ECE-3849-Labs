@@ -38,7 +38,7 @@
 // Macros
 #define ADC_BUFFER_SIZE 2048
 #define BUTTON_FIFO_SIZE 11
-
+#define FFT_BUFFER_SIZE 1024
 // Constants
 const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
 const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
@@ -56,6 +56,7 @@ volatile int32_t gADCBufferIndex = 0;                   // ADC FIFO read index
 volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // ADC readings FIFO
 volatile uint32_t gADCErrors = 0;                       // ADC overflow count
 volatile uint32_t gWaveformBuffer[LCD_HORIZONTAL_MAX];  // ADC waveform buffer
+volatile uint32_t gFFTBuffer[FFT_BUFFER_SIZE];          // FFT copy buffer
 volatile uint32_t gPixelBuffer[LCD_HORIZONTAL_MAX];     // Pixel coordinates of waveform
 volatile uint32_t gButtonPressCount = 0;                // Button press count
 volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Rising, 1 = Falling)
@@ -185,49 +186,78 @@ void WaveformTaskFunc(UArg arg1, UArg arg2)
         // Wait for trigger from processing task
         Semaphore_pend(semTriggerWaveformTask, BIOS_WAIT_FOREVER);
 
-        // Find trigger location
-        int32_t startIndex = gADCBufferIndex - (LCD_HORIZONTAL_MAX / 2);
-        ADCIndexWrap(&startIndex);
-        int32_t endIndex = startIndex - (ADC_BUFFER_SIZE / 2);
-        ADCIndexWrap(&startIndex);
-        int32_t trigIndex = startIndex;
-        bool prevHigh = false;
-        uint8_t trigState = gTrigState;
-        while (true)
+        // Capture buffer
+        uint8_t displayState = gDisplayState;
+        if (displayState == 0)
         {
-            // Check for trigger condition
-            bool currentHigh = gADCBuffer[trigIndex] > ADC_OFFSET;
-            if(trigState == 0 && prevHigh && !currentHigh) break;
-            if(trigState == 1 && !prevHigh && currentHigh) break;
-            prevHigh = currentHigh;
+            // Capture waveform buffer
 
-            // Decrement trigger index
-            trigIndex--;
-            ADCIndexWrap(&trigIndex);
-            if (trigIndex == endIndex)
+            // Find trigger location
+            int32_t startIndex = gADCBufferIndex - (LCD_HORIZONTAL_MAX / 2);
+            ADCIndexWrap(&startIndex);
+            int32_t endIndex = startIndex - (ADC_BUFFER_SIZE / 2);
+            ADCIndexWrap(&startIndex);
+            int32_t trigIndex = startIndex;
+            bool prevHigh = false;
+            uint8_t trigState = gTrigState;
+            while (true)
             {
-                trigIndex = startIndex;
-                break;
+                // Check for trigger condition
+                bool currentHigh = gADCBuffer[trigIndex] > ADC_OFFSET;
+                if(trigState == 0 && prevHigh && !currentHigh) break;
+                if(trigState == 1 && !prevHigh && currentHigh) break;
+                prevHigh = currentHigh;
+
+                // Decrement trigger index
+                trigIndex--;
+                ADCIndexWrap(&trigIndex);
+                if (trigIndex == endIndex)
+                {
+                    trigIndex = startIndex;
+                    break;
+                }
+            }
+
+            // Copy into waveform buffer
+            startIndex = trigIndex - (LCD_HORIZONTAL_MAX / 2);
+            ADCIndexWrap(&startIndex);
+            endIndex = trigIndex + (LCD_HORIZONTAL_MAX / 2);
+            ADCIndexWrap(&endIndex);
+            int32_t copyIndex = startIndex;
+            while (true)
+            {
+                // Copy single reading to waveform buffer
+                int32_t pixelIndex = copyIndex - startIndex;
+                ADCIndexWrap(&pixelIndex);
+                gWaveformBuffer[pixelIndex] = gADCBuffer[copyIndex];
+
+                // Increment index
+                copyIndex++;
+                ADCIndexWrap(&copyIndex);
+                if (copyIndex == endIndex) break;
             }
         }
-
-        // Copy into waveform buffer
-        startIndex = trigIndex - (LCD_HORIZONTAL_MAX / 2);
-        ADCIndexWrap(&startIndex);
-        endIndex = trigIndex + (LCD_HORIZONTAL_MAX / 2);
-        ADCIndexWrap(&endIndex);
-        int32_t copyIndex = startIndex;
-        while (true)
+        else
         {
-            // Copy single reading to waveform buffer
-            int32_t pixelIndex = copyIndex - startIndex;
-            ADCIndexWrap(&pixelIndex);
-            gWaveformBuffer[pixelIndex] = gADCBuffer[copyIndex];
+            // Capture FFT buffer
 
-            // Increment index
-            copyIndex++;
-            ADCIndexWrap(&copyIndex);
-            if (copyIndex == endIndex) break;
+            // Copy into waveform buffer
+            int32_t endIndex = gADCBufferIndex;
+            int32_t startIndex = endIndex - FFT_BUFFER_SIZE;
+            ADCIndexWrap(&startIndex);
+            int32_t copyIndex = startIndex;
+            while (true)
+            {
+                // Copy single reading to FFT buffer
+                int32_t fftIndex = copyIndex - startIndex;
+                ADCIndexWrap(&fftIndex);
+                gFFTBuffer[fftIndex] = gADCBuffer[copyIndex];
+
+                // Increment index
+                copyIndex++;
+                ADCIndexWrap(&copyIndex);
+                if (copyIndex == endIndex) break;
+            }
         }
 
         // Trigger processing task
