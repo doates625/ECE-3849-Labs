@@ -60,6 +60,7 @@ volatile uint32_t gPixelBuffer[LCD_HORIZONTAL_MAX];     // Pixel coordinates of 
 volatile uint32_t gButtonPressCount = 0;                // Button press count
 volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Rising, 1 = Falling)
 volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
+volatile uint8_t gDisplayState = 0;                     // Display state (0 = waveform, 1 = FFT)
 tContext gContext;                                      // Graphics context handle
 
 // Function Prototypes
@@ -97,6 +98,11 @@ int main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
     GPIOPinTypeGPIOInput(GPIO_PORTK_BASE, GPIO_PIN_6);
     GPIOPadConfigSet(GPIO_PORTK_BASE, GPIO_PIN_6, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
+
+    // Board button 1 (PJ0)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOJ);
+    GPIOPinTypeGPIOInput(GPIO_PORTJ_BASE, GPIO_PIN_0);
+    GPIOPadConfigSet(GPIO_PORTJ_BASE, GPIO_PIN_0, GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
 
     // JoyStick Horizontal-X (Analog AIN13, GPIO PD2)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
@@ -248,12 +254,14 @@ void ButtonTaskFunc(UArg arg1, UArg arg2)
         // 3 -> JoyStick Left
         // 4 -> JoyStick Up
         // 5 -> JoyStick Down
-        // 6-7 (empty)
+        // 6 -> Board Button 1
+        // 7 -> Empty
 
         // Read GPIO buttons
         uint8_t buttons = 0;
         buttons |= (~GPIOPinRead(GPIO_PORTH_BASE, 0xff) & GPIO_PIN_1) >> 1; // BoosterPack Button 1
         buttons |= (~GPIOPinRead(GPIO_PORTK_BASE, 0xff) & GPIO_PIN_6) >> 5; // BoosterPack Button 2
+        buttons |= (~GPIOPinRead(GPIO_PORTJ_BASE, 0xff) & GPIO_PIN_0) << 6; // Board Button 1
 
         // Read JoyStick ADCs
         uint32_t joystickADCs[2];
@@ -285,6 +293,7 @@ void ButtonTaskFunc(UArg arg1, UArg arg2)
         if (buttons != 0 && buttons != oldButtons)
         {
             Mailbox_post(ButtonMailbox, &buttons, BIOS_NO_WAIT);
+            Semaphore_post(semTriggerDisplayTask);
             gButtonPressCount++;
         }
         oldButtons = buttons;
@@ -317,6 +326,13 @@ void UserInputTaskFunc(UArg arg1, UArg arg2)
         {
             // BoosterPack Button 2 -> Falling Trigger
             gTrigState = 1;
+        }
+
+        // Handle display state
+        if (buttons & (1 << 6))
+        {
+            // Switch between waveform and FFT state
+            gDisplayState = 1 - gDisplayState;
         }
 
         // Handle voltage scale
@@ -379,26 +395,52 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
         // Print text to LCD
         GrContextForegroundSet(&gContext, ClrWhite);
 
-        // Print Voltage Scale
-        char voltScaleStr[10];
-        uint8_t voltScaleState = gVoltScaleState;
-        switch (voltScaleState)
+        // Print division scales
+        uint8_t displayState = gDisplayState;
+        if (displayState == 0)
         {
-        case 0:
-            snprintf(voltScaleStr, sizeof(voltScaleStr), "100mV");
-            break;
-        case 1:
-            snprintf(voltScaleStr, sizeof(voltScaleStr), "200mV");
-            break;
-        case 2:
-            snprintf(voltScaleStr, sizeof(voltScaleStr), "500mV");
-            break;
-        case 3:
-        default:
-            snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V");
-            break;
+            // Display waveform scales
+
+            // Print time scale
+            char timeScaleStr[10];
+            snprintf(timeScaleStr, sizeof(timeScaleStr), "20us");
+            GrStringDraw(&gContext, timeScaleStr, sizeof(timeScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
+
+            // Print voltage scale
+            char voltScaleStr[10];
+            uint8_t voltScaleState = gVoltScaleState;
+            switch (voltScaleState)
+            {
+            case 0:
+                snprintf(voltScaleStr, sizeof(voltScaleStr), "100mV");
+                break;
+            case 1:
+                snprintf(voltScaleStr, sizeof(voltScaleStr), "200mV");
+                break;
+            case 2:
+                snprintf(voltScaleStr, sizeof(voltScaleStr), "500mV");
+                break;
+            case 3:
+            default:
+                snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V");
+                break;
+            }
+            GrStringDraw(&gContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 72, /*y*/ 8, /*opaque*/ false);
         }
-        GrStringDraw(&gContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
+        else
+        {
+            // Display FFT scales
+
+            // Print frequency scale
+            char freqScaleStr[10];
+            snprintf(freqScaleStr, sizeof(freqScaleStr), "20KHz");
+            GrStringDraw(&gContext, freqScaleStr, sizeof(freqScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
+
+            // Print DB scale
+            char dbScaleStr[10];
+            snprintf(dbScaleStr, sizeof(dbScaleStr), "20dB");
+            GrStringDraw(&gContext, dbScaleStr, sizeof(dbScaleStr), /*x*/ 72, /*y*/ 8, /*opaque*/ false);
+        }
 
         // Flush LCD frame buffer
         GrFlush(&gContext);
