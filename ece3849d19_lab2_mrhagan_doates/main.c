@@ -35,10 +35,19 @@
 #include "driverlib/adc.h"
 #include "Crystalfontz128x128_ST7735.h"
 
+// Kiss FFT Library
+#include <math.h>
+#include "kiss_fft.h"
+#include "_kiss_fft_guts.h"
+
+
 // Macros
 #define ADC_BUFFER_SIZE 2048
 #define BUTTON_FIFO_SIZE 11
 #define FFT_BUFFER_SIZE 1024
+#define PI 3.14159265358979f
+#define KISS_FFT_CFG_SIZE (sizeof(struct kiss_fft_state)+sizeof(kiss_fft_cpx)*(NFFT-1))
+#define NFFT 1024 // FFT length
 // Constants
 const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
 const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
@@ -63,6 +72,12 @@ volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Ri
 volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
 volatile uint8_t gDisplayState = 0;                     // Display state (0 = waveform, 1 = FFT)
 tContext gContext;                                      // Graphics context handle
+
+// FFT Variables
+static char kiss_fft_cfg_buffer[KISS_FFT_CFG_SIZE]; // Kiss FFT config memory
+size_t buffer_size = KISS_FFT_CFG_SIZE;             // Config buffer size
+kiss_fft_cfg cfg;                                   // Config buffer object
+static kiss_fft_cpx in[NFFT], out[NFFT];            // Waveform and spectrum buffers
 
 // Function Prototypes
 void ADCIndexWrap(volatile int32_t* index);
@@ -112,6 +127,9 @@ int main(void)
     // JoyStick Vertical-Y (Analog AIN17, GPIO PK1)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
     GPIOPinTypeADC(GPIO_PORTK_BASE, GPIO_PIN_1);
+
+    // Configuring FFT module
+    cfg = kiss_fft_alloc(NFFT, 0, kiss_fft_cfg_buffer, &buffer_size); // init Kiss FFT
 
     // Configure ADC modules
 
@@ -490,35 +508,63 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
         // Wait for trigger from Waveform task
         Semaphore_pend(semTriggerProcessingTask, BIOS_WAIT_FOREVER);
 
-        // Calculate voltage scale
-        float voltsPerDiv;
-        switch (gVoltScaleState)
+        // Calculating the pixel regions
+        uint8_t displayState = gDisplayState;
+        if (displayState == 0)
         {
-        case 0:
-            voltsPerDiv = 0.1f;
-            break;
-        case 1:
-            voltsPerDiv = 0.2f;
-            break;
-        case 2:
-            voltsPerDiv = 0.5f;
-            break;
-        case 3:
-        default:
-            voltsPerDiv = 1.0f;
-            break;
-        }
-        float pixelPerAdc =
-                (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) *
-                        voltsPerDiv);
+            // Calculate waveform pixels
 
-        // Convert gWaveformBuffer to gPixelBuffer
-        int32_t pixelIndex;
-        for (pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX; pixelIndex++)
+            // Calculate voltage scale
+            float voltsPerDiv;
+            switch (gVoltScaleState)
+            {
+            case 0:
+                voltsPerDiv = 0.1f;
+                break;
+            case 1:
+                voltsPerDiv = 0.2f;
+                break;
+            case 2:
+                voltsPerDiv = 0.5f;
+                break;
+            case 3:
+            default:
+                voltsPerDiv = 1.0f;
+                break;
+            }
+            float pixelPerAdc =
+                    (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) *
+                            voltsPerDiv);
+
+            // Convert gWaveformBuffer to gPixelBuffer
+            int32_t pixelIndex;
+            for (pixelIndex = 0; pixelIndex < LCD_HORIZONTAL_MAX; pixelIndex++)
+            {
+                gPixelBuffer[pixelIndex] =
+                        (int)(LCD_VERTICAL_MAX / 2) -
+                        (int)(pixelPerAdc * ((int)gWaveformBuffer[pixelIndex] - (int)ADC_OFFSET));
+            }
+        }
+        else
         {
-            gPixelBuffer[pixelIndex] =
-                    (int)(LCD_VERTICAL_MAX / 2) -
-                    (int)(pixelPerAdc * ((int)gWaveformBuffer[pixelIndex] - (int)ADC_OFFSET));
+            // Calculate FFT pixels
+
+            // Compute FFT
+            int ifft;
+            for (ifft = 0; ifft < NFFT; ifft++) {   // generate an input waveform
+                in[ifft].r = sinf(20*PI*ifft/NFFT); // real part of waveform
+                in[ifft].i = 0;                     // imaginary part of waveform
+            }
+            kiss_fft(cfg, in, out);
+
+            // Convert to pixels in pixel buffer
+            uint32_t pix;    // Pixel index
+            for(pix = 0; pix < LCD_HORIZONTAL_MAX; pix++)
+            {
+                float mag = hypotf(out[pix].r, out[pix].i);
+                float db = 20.0f * log10f(mag);
+                gPixelBuffer[pix] = 64 - (uint32_t)db;
+            }
         }
 
         // Trigger display and waveform tasks

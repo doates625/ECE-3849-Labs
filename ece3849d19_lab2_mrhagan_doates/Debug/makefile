@@ -12,6 +12,7 @@ GEN_CMDS__FLAG := -l"configPkg/linker.cmd"
 ORDERED_OBJS += \
 "./Crystalfontz128x128_ST7735.obj" \
 "./HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj" \
+"./kiss_fft.obj" \
 "./main.obj" \
 "./sysctl_pll.obj" \
 "../EK_TM4C1294XL.cmd" \
@@ -161,8 +162,8 @@ ece3849d19_lab2_mrhagan_doates.hex: $(EXE_OUTPUTS)
 clean:
 	-$(RM) $(GEN_CMDS__QUOTED)$(GEN_MISC_FILES__QUOTED)$(BIN_OUTPUTS__QUOTED)$(GEN_FILES__QUOTED)$(EXE_OUTPUTS__QUOTED)$(GEN_OPTS__QUOTED)
 	-$(RMDIR) $(GEN_MISC_DIRS__QUOTED)
-	-$(RM) "Crystalfontz128x128_ST7735.obj" "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj" "main.obj" "sysctl_pll.obj" 
-	-$(RM) "Crystalfontz128x128_ST7735.d" "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.d" "main.d" "sysctl_pll.d" 
+	-$(RM) "Crystalfontz128x128_ST7735.obj" "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj" "kiss_fft.obj" "main.obj" "sysctl_pll.obj" 
+	-$(RM) "Crystalfontz128x128_ST7735.d" "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.d" "kiss_fft.d" "main.d" "sysctl_pll.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

@@ -14,6 +14,7 @@ CMD_SRCS += \
 C_SRCS += \
 ../Crystalfontz128x128_ST7735.c \
 ../HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.c \
+../kiss_fft.c \
 ../main.c \
 ../sysctl_pll.c 
 
@@ -30,6 +31,7 @@ GEN_MISC_DIRS += \
 C_DEPS += \
 ./Crystalfontz128x128_ST7735.d \
 ./HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.d \
+./kiss_fft.d \
 ./main.d \
 ./sysctl_pll.d 
 
@@ -39,6 +41,7 @@ GEN_OPTS += \
 OBJS += \
 ./Crystalfontz128x128_ST7735.obj \
 ./HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj \
+./kiss_fft.obj \
 ./main.obj \
 ./sysctl_pll.obj 
 
@@ -48,12 +51,14 @@ GEN_MISC_DIRS__QUOTED += \
 OBJS__QUOTED += \
 "Crystalfontz128x128_ST7735.obj" \
 "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj" \
+"kiss_fft.obj" \
 "main.obj" \
 "sysctl_pll.obj" 
 
 C_DEPS__QUOTED += \
 "Crystalfontz128x128_ST7735.d" \
 "HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.d" \
+"kiss_fft.d" \
 "main.d" \
 "sysctl_pll.d" 
 
@@ -64,6 +69,7 @@ GEN_FILES__QUOTED += \
 C_SRCS__QUOTED += \
 "../Crystalfontz128x128_ST7735.c" \
 "../HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.c" \
+"../kiss_fft.c" \
 "../main.c" \
 "../sysctl_pll.c" 
 

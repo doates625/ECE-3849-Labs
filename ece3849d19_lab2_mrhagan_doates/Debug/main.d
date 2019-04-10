@@ -234,6 +234,14 @@ main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/dri
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/adc.h
 main.obj: ../Crystalfontz128x128_ST7735.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/grlib/grlib.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/math.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_defs.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/machine/_limits.h
+main.obj: ../kiss_fft.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/stdlib.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/string.h
+main.obj: ../_kiss_fft_guts.h
+main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/limits.h
 
 ../main.c: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/std.h: 
@@ -469,3 +477,11 @@ C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpi
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/adc.h: 
 ../Crystalfontz128x128_ST7735.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/grlib/grlib.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/math.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/_defs.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/machine/_limits.h: 
+../kiss_fft.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/stdlib.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/string.h: 
+../_kiss_fft_guts.h: 
+D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/limits.h: 
