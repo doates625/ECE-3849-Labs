@@ -48,6 +48,7 @@
 #define PI 3.14159265358979f
 #define KISS_FFT_CFG_SIZE (sizeof(struct kiss_fft_state)+sizeof(kiss_fft_cpx)*(NFFT-1))
 #define NFFT 1024 // FFT length
+
 // Constants
 const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
 const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
@@ -358,48 +359,21 @@ void ButtonTaskFunc(UArg arg1, UArg arg2)
 void UserInputTaskFunc(UArg arg1, UArg arg2)
 {
     uint8_t buttons;
-
     while (1)
     {
         // Pend on button mailbox
         Mailbox_pend(ButtonMailbox, &buttons, BIOS_WAIT_FOREVER);
 
         // Handle trigger state
-        if (buttons & (1 << 0))
-        {
-            // BoosterPack Button 1 -> Rising Trigger
-            gTrigState = 0;
-        }
-        else if (buttons & (1 << 1))
-        {
-            // BoosterPack Button 2 -> Falling Trigger
-            gTrigState = 1;
-        }
+        if (buttons & (1 << 0)) gTrigState = 0; // BoosterPack Button 1 -> Rising Trigger
+        if (buttons & (1 << 1)) gTrigState = 1; // BoosterPack Button 2 -> Falling Trigger
 
-        // Handle display state
-        if (buttons & (1 << 6))
-        {
-            // Switch between waveform and FFT state
-            gDisplayState = 1 - gDisplayState;
-        }
+        // Swap display states on Board Button 1 press
+        if (buttons & (1 << 6)) gDisplayState = 1 - gDisplayState;
 
         // Handle voltage scale
-        if (buttons & (1 << 4))
-        {
-            // JoyStick Up -> Increase Voltage scale
-            if (gVoltScaleState < 3)
-            {
-                gVoltScaleState++;
-            }
-        }
-        if (buttons & (1 << 5))
-        {
-            // JoyStick Down -> Decrease Voltage scale
-            if (gVoltScaleState > 0)
-            {
-                gVoltScaleState--;
-            }
-        }
+        if (buttons & (1 << 4) && gVoltScaleState < 3) gVoltScaleState++;   // JoyStick Up -> Increase Voltage scale
+        if (buttons & (1 << 5) && gVoltScaleState > 0) gVoltScaleState--;   // JoyStick Down -> Decrease Voltage scale
     }
 }
 
@@ -473,19 +447,10 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
             uint8_t voltScaleState = gVoltScaleState;
             switch (voltScaleState)
             {
-            case 0:
-                snprintf(voltScaleStr, sizeof(voltScaleStr), "100mV");
-                break;
-            case 1:
-                snprintf(voltScaleStr, sizeof(voltScaleStr), "200mV");
-                break;
-            case 2:
-                snprintf(voltScaleStr, sizeof(voltScaleStr), "500mV");
-                break;
-            case 3:
-            default:
-                snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V");
-                break;
+                case 0: snprintf(voltScaleStr, sizeof(voltScaleStr), "100mV"); break;
+                case 1: snprintf(voltScaleStr, sizeof(voltScaleStr), "200mV"); break;
+                case 2: snprintf(voltScaleStr, sizeof(voltScaleStr), "500mV"); break;
+                case 3: snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V"); break;
             }
             GrStringDraw(&gContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 72, /*y*/ 8, /*opaque*/ false);
         }
@@ -522,7 +487,7 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
         // Wait for trigger from Waveform task
         Semaphore_pend(semTriggerProcessingTask, BIOS_WAIT_FOREVER);
 
-        // Calculating the pixel regions
+        // Calculate the pixel positions
         uint8_t displayState = gDisplayState;
         if (displayState == 0)
         {
@@ -532,19 +497,10 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
             float voltsPerDiv;
             switch (gVoltScaleState)
             {
-            case 0:
-                voltsPerDiv = 0.1f;
-                break;
-            case 1:
-                voltsPerDiv = 0.2f;
-                break;
-            case 2:
-                voltsPerDiv = 0.5f;
-                break;
-            case 3:
-            default:
-                voltsPerDiv = 1.0f;
-                break;
+                case 0: voltsPerDiv = 0.1f; break;
+                case 1: voltsPerDiv = 0.2f; break;
+                case 2: voltsPerDiv = 0.5f; break;
+                case 3: voltsPerDiv = 1.0f; break;
             }
             float pixelPerAdc =
                     (VIN_RANGE * PIXELS_PER_DIV)/((1 << ADC_BITS) *
