@@ -129,7 +129,7 @@ int main(void)
     GPIOPinTypeADC(GPIO_PORTK_BASE, GPIO_PIN_1);
 
     // Configuring FFT module
-    cfg = kiss_fft_alloc(NFFT, 0, kiss_fft_cfg_buffer, &buffer_size); // init Kiss FFT
+    cfg = kiss_fft_alloc(NFFT, 0, kiss_fft_cfg_buffer, &buffer_size);
 
     // Configure ADC modules
 
@@ -421,12 +421,27 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
 
         // Draw division lines
         uint32_t divIndex;
-        for(divIndex = 4; divIndex < LCD_HORIZONTAL_MAX; divIndex += 20)
+        GrContextForegroundSet(&gContext, ClrDimGray);
+        uint8_t displayState = gDisplayState;
+        if (displayState == 0)
         {
-            GrContextForegroundSet(&gContext, ClrDimGray);
-            GrLineDrawH(&gContext, 0, LCD_HORIZONTAL_MAX-1, divIndex);
-            GrLineDrawV(&gContext, divIndex, 0, LCD_HORIZONTAL_MAX-1);
+            // Display lines for waveform
+            for(divIndex = 4; divIndex < LCD_HORIZONTAL_MAX; divIndex += 20)
+            {
+                GrLineDrawH(&gContext, 0, LCD_HORIZONTAL_MAX-1, divIndex);
+                GrLineDrawV(&gContext, divIndex, 0, LCD_HORIZONTAL_MAX-1);
+            }
         }
+        else
+        {
+            // Display lines for FFT
+            for(divIndex = 4; divIndex < LCD_HORIZONTAL_MAX; divIndex += 20)
+            {
+                GrLineDrawH(&gContext, 0, LCD_HORIZONTAL_MAX-1, divIndex);
+                GrLineDrawV(&gContext, divIndex - 4, 0, LCD_HORIZONTAL_MAX-1);
+            }
+        }
+
 
         // Draw sample pixels to LCD
         uint32_t pixelIndex;
@@ -444,7 +459,6 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
         GrContextForegroundSet(&gContext, ClrWhite);
 
         // Print division scales
-        uint8_t displayState = gDisplayState;
         if (displayState == 0)
         {
             // Display waveform scales
@@ -551,9 +565,9 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
 
             // Compute FFT
             int ifft;
-            for (ifft = 0; ifft < NFFT; ifft++) {   // generate an input waveform
-                in[ifft].r = sinf(20*PI*ifft/NFFT); // real part of waveform
-                in[ifft].i = 0;                     // imaginary part of waveform
+            for (ifft = 0; ifft < NFFT; ifft++) {
+                in[ifft].r = gFFTBuffer[ifft];      // Input is real
+                in[ifft].i = 0.0f;                  // Imaginary is 0
             }
             kiss_fft(cfg, in, out);
 
@@ -563,7 +577,7 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
             {
                 float mag = hypotf(out[pix].r, out[pix].i);
                 float db = 20.0f * log10f(mag);
-                gPixelBuffer[pix] = 64 - (uint32_t)db;
+                gPixelBuffer[pix] = 164 - (uint32_t)db;
             }
         }
 
