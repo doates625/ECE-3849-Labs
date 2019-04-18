@@ -34,12 +34,17 @@
 #include "driverlib/gpio.h"
 #include "driverlib/adc.h"
 #include "driverlib/timer.h"
+#include "driverlib/udma.h"
 #include "Crystalfontz128x128_ST7735.h"
 
 // Kiss FFT Library
 #include <math.h>
 #include "kiss_fft.h"
 #include "_kiss_fft_guts.h"
+
+// DMA Settings
+#pragma DATA_ALIGN(gDMAControlTable, 1024) // Address alignment required
+tDMAControlTable gDMAControlTable[64];     // uDMA control table (global)
 
 // Macros
 #define ADC_BUFFER_SIZE 2048
@@ -61,7 +66,7 @@ const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative thresho
 // Shared Global Variables
 volatile uint32_t gSystemClockFrequency = 0;            // System clock frequency [Hz]
 volatile uint32_t gTimeMilliseconds = 0;                // System time counter [ms]
-volatile int32_t gADCBufferIndex = 0;                   // ADC FIFO read index
+// volatile int32_t gADCBufferIndex = 0;                   // ADC FIFO read index
 volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // ADC readings FIFO
 volatile uint32_t gADCErrors = 0;                       // ADC overflow count
 volatile uint32_t gWaveformBuffer[LCD_HORIZONTAL_MAX];  // ADC waveform buffer
@@ -71,6 +76,7 @@ volatile uint32_t gButtonPressCount = 0;                // Button press count
 volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Rising, 1 = Falling)
 volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
 volatile uint8_t gDisplayState = 0;                     // Display state (0 = waveform, 1 = FFT)
+volatile bool gDMAPrimary = true;                       // Flag for DMA occurring in primary channel (false = 2nd channel)
 
 // Non-Shared global variables
 tContext gContext;              // Graphics context handle
@@ -86,7 +92,8 @@ static kiss_fft_cpx out[FFT_BUFFER_SIZE];           // FFT output
 
 // Function Prototypes
 void ADCIndexWrap(volatile int32_t* index);
-uint32_t CpuLoadCount();
+int32_t getADCBufferIndex(void);
+uint32_t cpuLoadCount(void);
 
 /**
  * Main Function
@@ -139,16 +146,33 @@ int main(void)
     // Configuring FFT module
     cfg = kiss_fft_alloc(FFT_BUFFER_SIZE, 0, kiss_fft_cfg_buffer, &buffer_size);
 
-    // Configure Timers
+    // Configure DMA controller
 
-    // Configure Timer3A for CPU load estimation
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
-    TimerDisable(TIMER3_BASE, TIMER_BOTH);
-    TimerConfigure(TIMER3_BASE, TIMER_CFG_ONE_SHOT);
-    TimerLoadSet(TIMER3_BASE, TIMER_A, gSystemClockFrequency / 100);
+    // Configure and enable DMA
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
+    uDMAEnable();
+    uDMAControlBaseSet(gDMAControlTable);
+    uDMAChannelAssign(UDMA_CH24_ADC1_0);
+    uDMAChannelAttributeDisable(UDMA_SEC_CHANNEL_ADC10, UDMA_ATTR_ALL);
 
-    // Get unloaded CPU count
-    gCpuCountUnloaded = CpuLoadCount();
+    // Primary DMA channel = first half of the ADC buffer
+    uDMAChannelControlSet(
+        UDMA_SEC_CHANNEL_ADC10 | UDMA_PRI_SELECT,
+        UDMA_SIZE_16 | UDMA_SRC_INC_NONE | UDMA_DST_INC_16 | UDMA_ARB_4);
+    uDMAChannelTransferSet(
+        UDMA_SEC_CHANNEL_ADC10 | UDMA_PRI_SELECT,
+        UDMA_MODE_PINGPONG, (void*)&ADC1_SSFIFO0_R,
+        (void*)&gADCBuffer[0], ADC_BUFFER_SIZE/2);
+
+    // Alternate DMA channel = second half of the ADC buffer
+    uDMAChannelControlSet(UDMA_SEC_CHANNEL_ADC10 | UDMA_ALT_SELECT,
+        UDMA_SIZE_16 | UDMA_SRC_INC_NONE | UDMA_DST_INC_16 | UDMA_ARB_4);
+    uDMAChannelTransferSet(UDMA_SEC_CHANNEL_ADC10 | UDMA_ALT_SELECT,
+        UDMA_MODE_PINGPONG, (void*)&ADC1_SSFIFO0_R,
+        (void*)&gADCBuffer[ADC_BUFFER_SIZE/2], ADC_BUFFER_SIZE/2);
+
+    // Enable DMA Channel
+    uDMAChannelEnable(UDMA_SEC_CHANNEL_ADC10);
 
     // Configure ADC modules
 
@@ -159,14 +183,25 @@ int main(void)
     ADCSequenceStepConfigure(ADC0_BASE, 0, 1, ADC_CTL_CH17 | ADC_CTL_IE | ADC_CTL_END);
     ADCSequenceEnable(ADC0_BASE, 0);
 
-    // Configure ADC1 for sampler ISR
+    // Configure ADC1 for DMA sampler
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
     GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_0);
     ADCSequenceDisable(ADC1_BASE, 0);
     ADCSequenceConfigure(ADC1_BASE, 0, ADC_TRIGGER_ALWAYS, 0);
     ADCSequenceStepConfigure(ADC1_BASE, 0, 0, ADC_CTL_CH3 | ADC_CTL_IE | ADC_CTL_END);
-    ADCSequenceEnable(ADC1_BASE, 0);
-    ADCIntEnable(ADC1_BASE, 0);
+    ADCSequenceDMAEnable(ADC1_BASE, 0);         // Enable DMA for ADC1 sequence 0
+    ADCIntEnableEx(ADC1_BASE, ADC_INT_DMA_SS0); // Enable ADC1 sequence 0 DMA interrupt
+
+    // Configure Timers
+
+    // Configure Timer3A for CPU load estimation
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
+    TimerDisable(TIMER3_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER3_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER3_BASE, TIMER_A, gSystemClockFrequency / 100);
+
+    // Get unloaded CPU count
+    gCpuCountUnloaded = cpuLoadCount();
 
     // Start BIOS
     BIOS_start();
@@ -180,20 +215,41 @@ int main(void)
  */
 void AdcHwiFunc(UArg arg1)
 {
-    // Clear ADC interrupt flag
-    ADC1_ISC_R |= ADC_ISC_IN0;
+    // Clear interrupt flag
+    ADCIntClearEx(ADC1_BASE, ADC_INT_DMA_SS0);
 
-    // Count ADC FIFO overflows
-    if (ADC1_OSTAT_R & ADC_OSTAT_OV0)
+    // Check the primary DMA channel for end of transfer, and restart if needed.
+    if (uDMAChannelModeGet(UDMA_SEC_CHANNEL_ADC10 | UDMA_PRI_SELECT) == UDMA_MODE_STOP)
     {
-        gADCErrors++;
-        ADC1_OSTAT_R = ADC_OSTAT_OV0;
+        // Restart primary channel (same as setup)
+        uDMAChannelTransferSet(
+            UDMA_SEC_CHANNEL_ADC10 | UDMA_PRI_SELECT,
+            UDMA_MODE_PINGPONG, (void*)&ADC1_SSFIFO0_R,
+            (void*)&gADCBuffer[0], ADC_BUFFER_SIZE/2);
+
+        // DMA is currently occurring in the alternate buffer
+        gDMAPrimary = false;
     }
 
-    // Increment ADC buffer index and read into buffer
-    gADCBufferIndex++;
-    ADCIndexWrap(&gADCBufferIndex);
-    gADCBuffer[gADCBufferIndex] = ADC1_SSFIFO0_R & ADC_SSFIFO0_DATA_M;
+
+    // Check the alternate DMA channel for end of transfer, and restart if needed.
+    if (uDMAChannelModeGet(UDMA_SEC_CHANNEL_ADC10 | UDMA_ALT_SELECT) == UDMA_MODE_STOP)
+    {
+        // Restart alternate channel (same as setup)
+        uDMAChannelTransferSet(
+            UDMA_SEC_CHANNEL_ADC10 | UDMA_ALT_SELECT,
+            UDMA_MODE_PINGPONG, (void*)&ADC1_SSFIFO0_R,
+            (void*)&gADCBuffer[ADC_BUFFER_SIZE/2], ADC_BUFFER_SIZE/2);
+
+        // DMA is currently occurring in the primary buffer
+        gDMAPrimary = true;
+    }
+
+    // The DMA channel may be disabled if the CPU is paused by the debugger.
+    if (!uDMAChannelIsEnabled(UDMA_SEC_CHANNEL_ADC10))
+    {
+        uDMAChannelEnable(UDMA_SEC_CHANNEL_ADC10);  // Re-enable the DMA channel
+    }
 }
 
 /**
@@ -230,7 +286,7 @@ void WaveformTaskFunc(UArg arg1, UArg arg2)
             // Capture waveform buffer
 
             // Find trigger location
-            int32_t startIndex = gADCBufferIndex - (LCD_HORIZONTAL_MAX / 2);
+            int32_t startIndex = getADCBufferIndex() - (LCD_HORIZONTAL_MAX / 2);
             ADCIndexWrap(&startIndex);
             int32_t endIndex = startIndex - (ADC_BUFFER_SIZE / 2);
             ADCIndexWrap(&startIndex);
@@ -279,7 +335,7 @@ void WaveformTaskFunc(UArg arg1, UArg arg2)
             // Capture FFT buffer
 
             // Copy into waveform buffer
-            int32_t endIndex = gADCBufferIndex;
+            int32_t endIndex = getADCBufferIndex();
             int32_t startIndex = endIndex - FFT_BUFFER_SIZE;
             ADCIndexWrap(&startIndex);
             int32_t copyIndex = startIndex;
@@ -492,7 +548,7 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
         }
 
         // Estimate and print CPU load
-        gCpuCountLoaded = CpuLoadCount();
+        gCpuCountLoaded = cpuLoadCount();
         float cpuLoad = 1.0f - ((float)gCpuCountLoaded)/((float)gCpuCountUnloaded);
         char cpuLoadStr[20];
         snprintf(cpuLoadStr, sizeof(cpuLoadStr), "CPU Load: %.1f%%", cpuLoad * 100.0f);
@@ -583,9 +639,30 @@ void ADCIndexWrap(volatile int32_t* index)
 }
 
 /**
+ * Returns most up-to-date ADC buffer index.
+ */
+int32_t getADCBufferIndex(void)
+{
+    int32_t index;
+    if (gDMAPrimary)
+    {
+        // DMA is currently in the primary channel
+        index = ADC_BUFFER_SIZE/2 - 1 -
+                uDMAChannelSizeGet(UDMA_SEC_CHANNEL_ADC10 | UDMA_PRI_SELECT);
+    }
+    else
+    {
+        // DMA is currently in the alternate channel
+        index = ADC_BUFFER_SIZE - 1 -
+                uDMAChannelSizeGet(UDMA_SEC_CHANNEL_ADC10 | UDMA_ALT_SELECT);
+    }
+    return index;
+}
+
+/**
  * Returns count from Timer3A for CPU load estimation.
  */
-uint32_t CpuLoadCount()
+uint32_t cpuLoadCount(void)
 {
     uint32_t count = 0;
     TimerIntClear(TIMER3_BASE, TIMER_TIMA_TIMEOUT);

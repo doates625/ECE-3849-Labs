@@ -15923,7 +15923,7 @@ __o = __obj[848]  // ti.sysbios.family.arm.m3.Hwi.Instance#0
     __o['eventId'] = -1
     __o['instance'] = __obj[849.0]
     __o['maskSetting'] = String(java.net.URLDecoder.decode('ti.sysbios.interfaces.IHwi.MaskingOption_LOWER', 'UTF-8'))
-    __o['priority'] = 0
+    __o['priority'] = 64
     __o['useDispatcher'] = true
 
 __o = __obj[849]  // ti.sysbios.family.arm.m3.Hwi.Instance#0/instance
@@ -17301,10 +17301,10 @@ __o = __obj[949]  // ti.sysbios.family.arm.m3.Hwi/interrupt/62
     __o['$category'] = String(java.net.URLDecoder.decode('Struct', 'UTF-8'))
     __o['$name'] = String(java.net.URLDecoder.decode('ti.sysbios.family.arm.m3.Hwi%2Finterrupt%2F62', 'UTF-8'))
     __o['fxn'] = String(java.net.URLDecoder.decode('%26AdcHwiFunc', 'UTF-8'))
-    __o['hwi'] = undefined
+    __o['hwi'] = __obj[848.0]
     __o['name'] = String(java.net.URLDecoder.decode('', 'UTF-8'))
-    __o['priority'] = 0
-    __o['useDispatcher'] = false
+    __o['priority'] = 64
+    __o['useDispatcher'] = true
     __o['used'] = true
 
 __o = __obj[950]  // ti.sysbios.family.arm.m3.Hwi/interrupt/63

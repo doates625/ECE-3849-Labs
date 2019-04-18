@@ -70,7 +70,7 @@ void ADC_ISR(void);
 void Button_ISR(void);
 uint8_t ButtonFifoPut(uint8_t val);
 uint8_t ButtonFifoGet(uint8_t *val);
-uint32_t CpuLoadCount();
+uint32_t cpuLoadCount();
 
 // Main Function
 int main(void)
@@ -129,7 +129,7 @@ int main(void)
     TimerLoadSet(TIMER3_BASE, TIMER_A, gSystemClockFrequency / 100);
 
     // Get unloaded CPU count
-    gCpuCountUnloaded = CpuLoadCount();
+    gCpuCountUnloaded = cpuLoadCount();
 
     // Configure Timer0A for button ISR
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
@@ -315,7 +315,7 @@ int main(void)
         GrStringDraw(&sContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
 
         // Estimate and print CPU load
-        gCpuCountLoaded = CpuLoadCount();
+        gCpuCountLoaded = cpuLoadCount();
         float cpuLoad = 1.0f - ((float)gCpuCountLoaded)/((float)gCpuCountUnloaded);
         char cpuLoadStr[20];
         snprintf(cpuLoadStr, sizeof(cpuLoadStr), "CPU Load: %.1f%%", cpuLoad * 100.0f);
@@ -442,7 +442,7 @@ uint8_t ButtonFifoGet(uint8_t *val)
 }
 
 // Counter for CPU load estimation using TIMER3A
-uint32_t CpuLoadCount()
+uint32_t cpuLoadCount()
 {
     uint32_t count = 0;
     TimerIntClear(TIMER3_BASE, TIMER_TIMA_TIMEOUT);

@@ -7,9 +7,6 @@
 
 #include <xdc/std.h>
 
-#include <ti/sysbios/family/arm/m3/Hwi.h>
-extern const ti_sysbios_family_arm_m3_Hwi_Handle AdcHwi;
-
 #include <ti/sysbios/knl/Clock.h>
 extern const ti_sysbios_knl_Clock_Handle ButtonClock;
 
@@ -42,6 +39,9 @@ extern const ti_sysbios_knl_Task_Handle DisplayTask;
 
 #include <ti/sysbios/knl/Task.h>
 extern const ti_sysbios_knl_Task_Handle UserInputTask;
+
+#include <ti/sysbios/family/arm/m3/Hwi.h>
+extern const ti_sysbios_family_arm_m3_Hwi_Handle AdcHwi;
 
 extern int xdc_runtime_Startup__EXECFXN__C;
 
