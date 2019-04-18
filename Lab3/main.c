@@ -33,13 +33,13 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 #include "driverlib/adc.h"
+#include "driverlib/timer.h"
 #include "Crystalfontz128x128_ST7735.h"
 
 // Kiss FFT Library
 #include <math.h>
 #include "kiss_fft.h"
 #include "_kiss_fft_guts.h"
-
 
 // Macros
 #define ADC_BUFFER_SIZE 2048
@@ -71,7 +71,11 @@ volatile uint32_t gButtonPressCount = 0;                // Button press count
 volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Rising, 1 = Falling)
 volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
 volatile uint8_t gDisplayState = 0;                     // Display state (0 = waveform, 1 = FFT)
-tContext gContext;                                      // Graphics context handle
+
+// Non-Shared global variables
+tContext gContext;              // Graphics context handle
+uint32_t gCpuCountUnloaded = 0; // CPU unloaded count (CPU load estimation)
+uint32_t gCpuCountLoaded = 0;   // CPU loaded count (CPU load estimation)
 
 // FFT Variables
 static char kiss_fft_cfg_buffer[KISS_FFT_CFG_SIZE]; // FFT config memory
@@ -82,6 +86,7 @@ static kiss_fft_cpx out[FFT_BUFFER_SIZE];           // FFT output
 
 // Function Prototypes
 void ADCIndexWrap(volatile int32_t* index);
+uint32_t CpuLoadCount();
 
 /**
  * Main Function
@@ -133,6 +138,17 @@ int main(void)
 
     // Configuring FFT module
     cfg = kiss_fft_alloc(FFT_BUFFER_SIZE, 0, kiss_fft_cfg_buffer, &buffer_size);
+
+    // Configure Timers
+
+    // Configure Timer3A for CPU load estimation
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
+    TimerDisable(TIMER3_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER3_BASE, TIMER_CFG_ONE_SHOT);
+    TimerLoadSet(TIMER3_BASE, TIMER_A, gSystemClockFrequency / 100);
+
+    // Get unloaded CPU count
+    gCpuCountUnloaded = CpuLoadCount();
 
     // Configure ADC modules
 
@@ -384,6 +400,8 @@ void UserInputTaskFunc(UArg arg1, UArg arg2)
 /**
  * Display task
  * - Writes data from gPixelBuffer to LCD display
+ * - Displays vertical and horizontal division scales
+ * - Estimates and prints the CPU load
  */
 void DisplayTaskFunc(UArg arg1, UArg arg2)
 {
@@ -473,6 +491,13 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
             GrStringDraw(&gContext, dbScaleStr, sizeof(dbScaleStr), /*x*/ 72, /*y*/ 8, /*opaque*/ false);
         }
 
+        // Estimate and print CPU load
+        gCpuCountLoaded = CpuLoadCount();
+        float cpuLoad = 1.0f - ((float)gCpuCountLoaded)/((float)gCpuCountUnloaded);
+        char cpuLoadStr[20];
+        snprintf(cpuLoadStr, sizeof(cpuLoadStr), "CPU Load: %.1f%%", cpuLoad * 100.0f);
+        GrStringDraw(&gContext, cpuLoadStr, sizeof(cpuLoadStr), /*x*/ 9, /*y*/ 113, /*opaque*/ false);
+
         // Flush LCD frame buffer
         GrFlush(&gContext);
     }
@@ -555,4 +580,19 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
 void ADCIndexWrap(volatile int32_t* index)
 {
     (*index) &= (ADC_BUFFER_SIZE - 1);
+}
+
+/**
+ * Returns count from Timer3A for CPU load estimation.
+ */
+uint32_t CpuLoadCount()
+{
+    uint32_t count = 0;
+    TimerIntClear(TIMER3_BASE, TIMER_TIMA_TIMEOUT);
+    TimerEnable(TIMER3_BASE, TIMER_A);
+    while (!(TimerIntStatus(TIMER3_BASE, false) & TIMER_TIMA_TIMEOUT))
+    {
+        count++;
+    }
+    return count;
 }

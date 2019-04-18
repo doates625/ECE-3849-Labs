@@ -232,6 +232,7 @@ main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/dri
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/sysctl.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpio.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/adc.h
+main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/timer.h
 main.obj: ../Crystalfontz128x128_ST7735.h
 main.obj: C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/grlib/grlib.h
 main.obj: D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/math.h
@@ -475,6 +476,7 @@ C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/int
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/sysctl.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/gpio.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/adc.h: 
+C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/driverlib/timer.h: 
 ../Crystalfontz128x128_ST7735.h: 
 C:/TI/tirtos_tivac_2_16_00_08/products/TivaWare_C_Series-2.1.1.71b/grlib/grlib.h: 
 D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include/math.h: 
