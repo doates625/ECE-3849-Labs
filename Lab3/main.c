@@ -143,12 +143,30 @@ int main(void)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOK);
     GPIOPinTypeADC(GPIO_PORTK_BASE, GPIO_PIN_1);
 
-    // Configuring FFT module
+    // Configure FFT module
     cfg = kiss_fft_alloc(FFT_BUFFER_SIZE, 0, kiss_fft_cfg_buffer, &buffer_size);
+
+    // Configure ADC modules
+
+    // Configure ADC0 for JoyStick
+    ADCSequenceDisable(ADC0_BASE, 0);
+    ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
+    ADCSequenceStepConfigure(ADC0_BASE, 0, 0, ADC_CTL_CH13);
+    ADCSequenceStepConfigure(ADC0_BASE, 0, 1, ADC_CTL_CH17 | ADC_CTL_IE | ADC_CTL_END);
+    ADCSequenceEnable(ADC0_BASE, 0);
+
+    // Configure ADC1 for DMA sampler
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
+    GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_0);
+    ADCSequenceDisable(ADC1_BASE, 0);
+    ADCSequenceConfigure(ADC1_BASE, 0, ADC_TRIGGER_ALWAYS, 0);
+    ADCSequenceStepConfigure(ADC1_BASE, 0, 0, ADC_CTL_CH3 | ADC_CTL_IE | ADC_CTL_END);
+    ADCSequenceDMAEnable(ADC1_BASE, 0);         // Enable DMA for ADC1 sequence 0
+    ADCIntEnableEx(ADC1_BASE, ADC_INT_DMA_SS0); // Enable ADC1 sequence 0 DMA interrupt
 
     // Configure DMA controller
 
-    // Configure and enable DMA
+    // Initialize and configure DMA
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
     uDMAEnable();
     uDMAControlBaseSet(gDMAControlTable);
@@ -173,24 +191,6 @@ int main(void)
 
     // Enable DMA Channel
     uDMAChannelEnable(UDMA_SEC_CHANNEL_ADC10);
-
-    // Configure ADC modules
-
-    // Configure ADC0 for JoyStick
-    ADCSequenceDisable(ADC0_BASE, 0);
-    ADCSequenceConfigure(ADC0_BASE, 0, ADC_TRIGGER_PROCESSOR, 0);
-    ADCSequenceStepConfigure(ADC0_BASE, 0, 0, ADC_CTL_CH13);
-    ADCSequenceStepConfigure(ADC0_BASE, 0, 1, ADC_CTL_CH17 | ADC_CTL_IE | ADC_CTL_END);
-    ADCSequenceEnable(ADC0_BASE, 0);
-
-    // Configure ADC1 for DMA sampler
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
-    GPIOPinTypeADC(GPIO_PORTE_BASE, GPIO_PIN_0);
-    ADCSequenceDisable(ADC1_BASE, 0);
-    ADCSequenceConfigure(ADC1_BASE, 0, ADC_TRIGGER_ALWAYS, 0);
-    ADCSequenceStepConfigure(ADC1_BASE, 0, 0, ADC_CTL_CH3 | ADC_CTL_IE | ADC_CTL_END);
-    ADCSequenceDMAEnable(ADC1_BASE, 0);         // Enable DMA for ADC1 sequence 0
-    ADCIntEnableEx(ADC1_BASE, ADC_INT_DMA_SS0); // Enable ADC1 sequence 0 DMA interrupt
 
     // Configure Timers
 
