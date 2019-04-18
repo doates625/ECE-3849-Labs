@@ -19215,7 +19215,7 @@ __o = __obj[1140]
     __o['cfgArgs'] = null
     __o['cfgArgsEncoded'] = true
     __o['cfgHome'] = String(java.net.URLDecoder.decode('configPkg', 'UTF-8'))
-    __o['cfgScript'] = String(java.net.URLDecoder.decode('C%3A%2FUsers%2Fdoate%2FDesktop%2FECE-3849%2FECE-3849-Labs%2Fece3849d19_lab2_mrhagan_doates%2Frtos.cfg', 'UTF-8'))
+    __o['cfgScript'] = String(java.net.URLDecoder.decode('C%3A%2FUsers%2Fdoate%2FDesktop%2FECE-3849%2FECE-3849-Labs%2FLab2%2Frtos.cfg', 'UTF-8'))
     __o['prelink'] = false
     __o['profile'] = String(java.net.URLDecoder.decode('release', 'UTF-8'))
     __o['releases'] = __obj[1141.0]
@@ -19326,7 +19326,7 @@ __o = __obj[1153]  // ti.targets.arm.elf.M4F/ccConfigOpts
 __o = __obj[1154]  // ti.targets.arm.elf.M4F/ccOpts
     __o['$category'] = String(java.net.URLDecoder.decode('Struct', 'UTF-8'))
     __o['$name'] = String(java.net.URLDecoder.decode('ti.targets.arm.elf.M4F%2FccOpts', 'UTF-8'))
-    __o['prefix'] = String(java.net.URLDecoder.decode('-mv7M4+--code_state%3D16+--float_support%3DFPv4SPD16+-me+-O1+--opt_for_speed%3D2+--include_path%3D%22C%3A%2FUsers%2Fdoate%2FDesktop%2FECE-3849%2FECE-3849-Labs%2Fece3849d19_lab2_mrhagan_doates%22+--include_path%3D%22C%3A%2FUsers%2Fdoate%2FDesktop%2FECE-3849%2FECE-3849-Labs%2Fece3849d19_lab2_mrhagan_doates%22+--include_path%3D%22C%3A%2FTI%2Ftirtos_tivac_2_16_00_08%2Fproducts%2FTivaWare_C_Series-2.1.1.71b%22+--include_path%3D%22C%3A%2FTI%2Ftirtos_tivac_2_16_00_08%2Fproducts%2Fbios_6_45_01_29%2Fpackages%2Fti%2Fsysbios%2Fposix%22+--include_path%3D%22D%3A%2FPrograms%2FCCSv8%2Fccsv8%2Ftools%2Fcompiler%2Fti-cgt-arm_18.1.2.LTS%2Finclude%22+--define%3Dccs%3D%22ccs%22+--define%3DPART_TM4C1294NCPDT+--define%3Dccs+--define%3DTIVAWARE+-g+--gcc+--diag_warning%3D225+--diag_warning%3D255+--diag_wrap%3Doff+--display_error_number+--gen_func_subsections%3Don+--abi%3Deabi+++-qq+-pdsw225', 'UTF-8'))
+    __o['prefix'] = String(java.net.URLDecoder.decode('-mv7M4+--code_state%3D16+--float_support%3DFPv4SPD16+-me+-O1+--opt_for_speed%3D2+--include_path%3D%22C%3A%2FUsers%2Fdoate%2FDesktop%2FECE-3849%2FECE-3849-Labs%2FLab2%22+--include_path%3D%22C%3A%2FUsers%2Fdoate%2FDesktop%2FECE-3849%2FECE-3849-Labs%2FLab2%22+--include_path%3D%22C%3A%2FTI%2Ftirtos_tivac_2_16_00_08%2Fproducts%2FTivaWare_C_Series-2.1.1.71b%22+--include_path%3D%22C%3A%2FTI%2Ftirtos_tivac_2_16_00_08%2Fproducts%2Fbios_6_45_01_29%2Fpackages%2Fti%2Fsysbios%2Fposix%22+--include_path%3D%22D%3A%2FPrograms%2FCCSv8%2Fccsv8%2Ftools%2Fcompiler%2Fti-cgt-arm_18.1.2.LTS%2Finclude%22+--define%3Dccs%3D%22ccs%22+--define%3DPART_TM4C1294NCPDT+--define%3Dccs+--define%3DTIVAWARE+-g+--gcc+--diag_warning%3D225+--diag_warning%3D255+--diag_wrap%3Doff+--display_error_number+--gen_func_subsections%3Don+--abi%3Deabi+++-qq+-pdsw225', 'UTF-8'))
     __o['suffix'] = String(java.net.URLDecoder.decode('', 'UTF-8'))
 
 __o = __obj[1155]  // ti.targets.arm.elf.M4F/compatibleSuffixes

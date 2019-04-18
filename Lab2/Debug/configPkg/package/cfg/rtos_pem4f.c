@@ -1829,7 +1829,7 @@ __FAR__ const xdc_SizeT ti_sysbios_knl_Task_Module_State_terminatedQ__O = offset
  *  Define absolute path prefix for this executable's
  *  configuration generated files.
  */
-xdc__META(__ASM__, "@(#)__ASM__ = C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates/Debug/configPkg/package/cfg/rtos_pem4f");
+xdc__META(__ASM__, "@(#)__ASM__ = C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/Lab2/Debug/configPkg/package/cfg/rtos_pem4f");
 
 /*
  *  ======== __ISA__ ========

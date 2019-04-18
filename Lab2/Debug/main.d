@@ -85,7 +85,7 @@ main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IGateProvider.h
 main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/package/System_SupportProxy.h
 main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/package/System_Module_GateProxy.h
 main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/cfg/global.h
-main.obj: C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates/Debug/configPkg/package/cfg/rtos_pem4f.h
+main.obj: C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/Lab2/Debug/configPkg/package/cfg/rtos_pem4f.h
 main.obj: C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/family/arm/m3/Hwi.h
 main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h
 main.obj: C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h
@@ -328,7 +328,7 @@ C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IGateProvider.h:
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/package/System_SupportProxy.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/package/System_Module_GateProxy.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/cfg/global.h: 
-C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/ece3849d19_lab2_mrhagan_doates/Debug/configPkg/package/cfg/rtos_pem4f.h: 
+C:/Users/doate/Desktop/ECE-3849/ECE-3849-Labs/Lab2/Debug/configPkg/package/cfg/rtos_pem4f.h: 
 C:/ti/tirtos_tivac_2_16_00_08/products/bios_6_45_01_29/packages/ti/sysbios/family/arm/m3/Hwi.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/Types.h: 
 C:/ti/xdctools_3_32_00_06_core/packages/xdc/runtime/IInstance.h: 

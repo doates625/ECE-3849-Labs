@@ -495,7 +495,8 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
 
             // Calculate voltage scale
             float voltsPerDiv;
-            switch (gVoltScaleState)
+            uint8_t voltScaleState = gVoltScaleState;
+            switch (voltScaleState)
             {
                 case 0: voltsPerDiv = 0.1f; break;
                 case 1: voltsPerDiv = 0.2f; break;
@@ -512,7 +513,8 @@ void ProcessingTaskFunc(UArg arg1, UArg arg2)
             {
                 gPixelBuffer[pixelIndex] =
                         (int)(LCD_VERTICAL_MAX / 2) -
-                        (int)(pixelPerAdc * ((int)gWaveformBuffer[pixelIndex] - (int)ADC_OFFSET));
+                        (int)(pixelPerAdc *
+                                ((int)gWaveformBuffer[pixelIndex] - (int)ADC_OFFSET));
             }
         }
         else

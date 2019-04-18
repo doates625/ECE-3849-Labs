@@ -127,34 +127,34 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXE_OUTPUTS += \
-ece3849d19_lab2_mrhagan_doates.out \
+Lab2.out \
 
 EXE_OUTPUTS__QUOTED += \
-"ece3849d19_lab2_mrhagan_doates.out" \
+"Lab2.out" \
 
 BIN_OUTPUTS += \
-ece3849d19_lab2_mrhagan_doates.hex \
+Lab2.hex \
 
 BIN_OUTPUTS__QUOTED += \
-"ece3849d19_lab2_mrhagan_doates.hex" \
+"Lab2.hex" \
 
 
 # All Target
 all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
-	@$(MAKE) --no-print-directory -Onone "ece3849d19_lab2_mrhagan_doates.out"
+	@$(MAKE) --no-print-directory -Onone "Lab2.out"
 
 # Tool invocations
-ece3849d19_lab2_mrhagan_doates.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
+Lab2.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: ARM Linker'
-	"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O1 --opt_for_speed=2 --define=ccs="ccs" --define=PART_TM4C1294NCPDT --define=ccs --define=TIVAWARE -g --gcc --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --abi=eabi -z -m"ece3849d19_lab2_mrhagan_doates.map" --heap_size=0 --stack_size=512 -i"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/lib" -i"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="ece3849d19_lab2_mrhagan_doates_linkInfo.xml" --rom_model -o "ece3849d19_lab2_mrhagan_doates.out" $(ORDERED_OBJS)
+	"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armcl" -mv7M4 --code_state=16 --float_support=FPv4SPD16 -me -O1 --opt_for_speed=2 --define=ccs="ccs" --define=PART_TM4C1294NCPDT --define=ccs --define=TIVAWARE -g --gcc --diag_warning=225 --diag_warning=255 --diag_wrap=off --display_error_number --gen_func_subsections=on --abi=eabi -z -m"Lab2.map" --heap_size=0 --stack_size=512 -i"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/lib" -i"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="Lab2_linkInfo.xml" --rom_model -o "Lab2.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
-ece3849d19_lab2_mrhagan_doates.hex: $(EXE_OUTPUTS)
+Lab2.hex: $(EXE_OUTPUTS)
 	@echo 'Building files: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo 'Invoking: ARM Hex Utility'
-	"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armhex"  -o "ece3849d19_lab2_mrhagan_doates.hex" $(EXE_OUTPUTS__QUOTED)
+	"D:/Programs/CCSv8/ccsv8/tools/compiler/ti-cgt-arm_18.1.2.LTS/bin/armhex"  -o "Lab2.hex" $(EXE_OUTPUTS__QUOTED)
 	@echo 'Finished building: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo ' '
 
