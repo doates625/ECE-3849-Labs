@@ -55,7 +55,7 @@ tDMAControlTable gDMAControlTable[64];     // uDMA control table (global)
 
 // Constants
 const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
-const uint32_t ADC_INT_FREQUENCY = 1000000;     // ADC sample frequency [Hz]
+const uint32_t ADC_INT_FREQUENCY = 2000000;     // ADC sample frequency [Hz]
 const uint32_t ADC_OFFSET = 2048;               // ADC 0V offset
 const uint32_t ADC_BITS = 12;                   // ADC bit count
 const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
@@ -518,7 +518,7 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
 
             // Print time scale
             char timeScaleStr[10];
-            snprintf(timeScaleStr, sizeof(timeScaleStr), "20us");
+            snprintf(timeScaleStr, sizeof(timeScaleStr), "10us");
             GrStringDraw(&gContext, timeScaleStr, sizeof(timeScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
 
             // Print voltage scale
@@ -539,7 +539,7 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
 
             // Print frequency scale
             char freqScaleStr[10];
-            snprintf(freqScaleStr, sizeof(freqScaleStr), "20KHz");
+            snprintf(freqScaleStr, sizeof(freqScaleStr), "40KHz");
             GrStringDraw(&gContext, freqScaleStr, sizeof(freqScaleStr), /*x*/ 9, /*y*/ 8, /*opaque*/ false);
 
             // Print DB scale
