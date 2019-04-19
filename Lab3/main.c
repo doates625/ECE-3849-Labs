@@ -163,6 +163,7 @@ int main(void)
     ADCSequenceStepConfigure(ADC1_BASE, 0, 0, ADC_CTL_CH3 | ADC_CTL_IE | ADC_CTL_END);
     ADCSequenceDMAEnable(ADC1_BASE, 0);         // Enable DMA for ADC1 sequence 0
     ADCIntEnableEx(ADC1_BASE, ADC_INT_DMA_SS0); // Enable ADC1 sequence 0 DMA interrupt
+    ADCSequenceEnable(ADC1_BASE, 0);
 
     // Configure DMA controller
 
