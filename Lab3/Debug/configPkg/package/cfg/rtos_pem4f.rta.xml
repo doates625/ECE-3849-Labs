@@ -159,17 +159,17 @@
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
-  <modMap key="ti.sysbios.hal.Hwi">
+  <modMap key="ti.sysbios.gates.GateHwi">
     <id>32812</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
-  <modMap key="ti.sysbios.gates.GateHwi">
-    <id>32814</id>
+  <modMap key="ti.sysbios.gates.GateMutex">
+    <id>32813</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
   </modMap>
-  <modMap key="ti.sysbios.gates.GateMutex">
+  <modMap key="ti.sysbios.hal.Hwi">
     <id>32815</id>
     <logger>null</logger>
     <diagsMask>0000110000000000</diagsMask>
