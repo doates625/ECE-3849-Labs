@@ -68,8 +68,7 @@ const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative thresho
 // Shared Global Variables
 volatile uint32_t gSystemClockFrequency = 0;            // System clock frequency [Hz]
 volatile uint32_t gTimeMilliseconds = 0;                // System time counter [ms]
-volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // ADC readings FIFO
-volatile uint32_t gADCErrors = 0;                       // ADC overflow count
+volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // ADC readings buffer
 volatile uint32_t gWaveformBuffer[LCD_HORIZONTAL_MAX];  // ADC waveform buffer
 volatile uint32_t gFFTBuffer[FFT_BUFFER_SIZE];          // FFT copy buffer
 volatile uint32_t gPixelBuffer[LCD_HORIZONTAL_MAX];     // Pixel coordinates of waveform
@@ -78,6 +77,8 @@ volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Ri
 volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
 volatile uint8_t gDisplayState = 0;                     // Display state (0 = waveform, 1 = FFT)
 volatile bool gDMAPrimary = true;                       // Flag for DMA occurring in primary channel (false = 2nd channel)
+volatile uint32_t gPrevTime = 0;                        // Previous time of signal rising edge (clocks)
+volatile uint32_t gPeriod = 0;                          // Input signal period (clocks)
 
 // Non-Shared global variables
 tContext gContext;              // Graphics context handle
@@ -225,7 +226,26 @@ int main(void)
     GPIOPinConfigure(GPIO_PD1_C1O);
 
     /**
-     * Timer Configurations
+     * Period Counter Timer
+     */
+
+    // Configure GPIO PD0 as timer input T0CCP0 at PD0
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+    GPIOPinTypeTimer(GPIO_PORTD_BASE, GPIO_PIN_0);
+    GPIOPinConfigure(GPIO_PD0_T0CCP0);
+
+    // Configure Timer0A for Edge Time Capture Mode
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
+    TimerDisable(TIMER0_BASE, TIMER_BOTH);
+    TimerConfigure(TIMER0_BASE, TIMER_CFG_SPLIT_PAIR | TIMER_CFG_A_CAP_TIME_UP);
+    TimerControlEvent(TIMER0_BASE, TIMER_A, TIMER_EVENT_POS_EDGE);
+    TimerLoadSet(TIMER0_BASE, TIMER_A, 0xffff);     // Use maximum load value
+    TimerPrescaleSet(TIMER0_BASE, TIMER_A, 0xff);   // Use maximum prescale value
+    TimerIntEnable(TIMER0_BASE, TIMER_CAPA_EVENT);
+    TimerEnable(TIMER0_BASE, TIMER_A);
+
+    /**
+     * CPU Load Estimation Timer
      */
 
     // Configure Timer3A for CPU load estimation
@@ -297,6 +317,20 @@ void AdcHwiFunc(UArg arg1)
 }
 
 /**
+ * Timer0A capture ISR
+ */
+void TimerCaptureHwiFunc()
+{
+    // Clear interrupt flag
+    TimerIntClear(TIMER0_BASE, TIMER_CAPA_EVENT);
+
+    // Measure period into global
+    uint32_t time = TimerValueGet(TIMER0_BASE, TIMER_A);
+    gPeriod = (time - gPrevTime) & 0xffff;
+    gPrevTime = time;
+}
+
+/**
  * Button clock callback
  * - Triggers button scanning task
  */
@@ -315,7 +349,6 @@ void WaveformTaskFunc(UArg arg1, UArg arg2)
 {
     // Enable interrupts
     IntMasterEnable();
-    gADCErrors = 0;
 
     // Waveform copying loop
     while (1)

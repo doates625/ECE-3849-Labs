@@ -46,6 +46,9 @@ extern const ti_sysbios_family_arm_m3_Hwi_Handle AdcHwi;
 #include <ti/sysbios/gates/GateHwi.h>
 extern const ti_sysbios_gates_GateHwi_Handle gateHwi0;
 
+#include <ti/sysbios/family/arm/m3/Hwi.h>
+extern const ti_sysbios_family_arm_m3_Hwi_Handle TimerCaptureHwi;
+
 extern int xdc_runtime_Startup__EXECFXN__C;
 
 extern int xdc_runtime_Startup__RESETFXN__C;
