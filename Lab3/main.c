@@ -35,6 +35,8 @@
 #include "driverlib/adc.h"
 #include "driverlib/timer.h"
 #include "driverlib/udma.h"
+#include "driverlib/comp.h"
+#include "driverlib/pin_map.h"
 #include "Crystalfontz128x128_ST7735.h"
 
 // Kiss FFT Library
@@ -66,7 +68,6 @@ const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative thresho
 // Shared Global Variables
 volatile uint32_t gSystemClockFrequency = 0;            // System clock frequency [Hz]
 volatile uint32_t gTimeMilliseconds = 0;                // System time counter [ms]
-// volatile int32_t gADCBufferIndex = 0;                   // ADC FIFO read index
 volatile uint16_t gADCBuffer[ADC_BUFFER_SIZE];          // ADC readings FIFO
 volatile uint32_t gADCErrors = 0;                       // ADC overflow count
 volatile uint32_t gWaveformBuffer[LCD_HORIZONTAL_MAX];  // ADC waveform buffer
@@ -192,6 +193,26 @@ int main(void)
 
     // Enable DMA Channel
     uDMAChannelEnable(UDMA_SEC_CHANNEL_ADC10);
+
+    // Configure Analog Comparator
+
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_COMP0);
+    ComparatorRefSet(COMP_BASE, COMP_REF_1_65V);
+    ComparatorConfigure(COMP_BASE, 1,
+        COMP_TRIG_NONE |    // Do not trigger ADC
+        COMP_INT_RISE |     // Rising edge interrupt (not handled yet...)
+        COMP_ASRCP_REF |    // Use internal reference for C1+
+        COMP_OUTPUT_INVERT  // Invert output (input is C1-)
+    );
+
+    // Comparator input C1- = BoosterPack Connector #1 pin 3 (PC4)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    GPIOPinTypeComparator(GPIO_PORTC_BASE, GPIO_PIN_4);
+
+    // Comparator output C1o = BoosterPack Connector #1 pin 15 (PD1)
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
+    GPIOPinTypeComparatorOutput(GPIO_PORTD_BASE, GPIO_PIN_1);
+    GPIOPinConfigure(GPIO_PD1_C1O);
 
     // Configure Timers
 
