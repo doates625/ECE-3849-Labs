@@ -101,8 +101,15 @@ uint32_t cpuLoadCount(void);
  */
 int main(void)
 {
-    // Disable interrupts during configuration
+    /**
+     * Disable Interrupts
+     */
+
     IntMasterDisable();
+
+    /**
+     * Clock Configuration
+     */
 
     // Initialize system clock to 120 MHz
     gSystemClockFrequency = SysCtlClockFreqSet(SYSCTL_XTAL_25MHZ | SYSCTL_OSC_MAIN | SYSCTL_USE_PLL | SYSCTL_CFG_VCO_480, 120000000);
@@ -115,13 +122,9 @@ int main(void)
     ADCClockConfigSet(ADC0_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
     ADCClockConfigSet(ADC1_BASE, ADC_CLOCK_SRC_PLL | ADC_CLOCK_RATE_FULL, pll_divisor);
 
-    // Initialize LCD driver
-    Crystalfontz128x128_Init();
-    Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);
-    GrContextInit(&gContext, &g_sCrystalfontz128x128);
-    GrContextFontSet(&gContext, &g_sFontFixed6x8);
-
-    // Configure BoosterPack GPIO
+    /**
+     * Button and Joystick GPIO
+     */
 
     // BoosterPack buttons 1 and 2 (PH1 and PK6)
     SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOH);
@@ -147,7 +150,9 @@ int main(void)
     // Configure FFT module
     cfg = kiss_fft_alloc(FFT_BUFFER_SIZE, 0, kiss_fft_cfg_buffer, &buffer_size);
 
-    // Configure ADC modules
+    /**
+     * ADC Modules
+     */
 
     // Configure ADC0 for JoyStick
     ADCSequenceDisable(ADC0_BASE, 0);
@@ -166,7 +171,9 @@ int main(void)
     ADCIntEnableEx(ADC1_BASE, ADC_INT_DMA_SS0); // Enable ADC1 sequence 0 DMA interrupt
     ADCSequenceEnable(ADC1_BASE, 0);
 
-    // Configure DMA controller
+    /**
+     * DMA Controller
+     */
 
     // Initialize and configure DMA
     SysCtlPeripheralEnable(SYSCTL_PERIPH_UDMA);
@@ -194,8 +201,11 @@ int main(void)
     // Enable DMA Channel
     uDMAChannelEnable(UDMA_SEC_CHANNEL_ADC10);
 
-    // Configure Analog Comparator
+    /**
+     * Analog Comparator
+     */
 
+    // Configure Analog Comparator
     SysCtlPeripheralEnable(SYSCTL_PERIPH_COMP0);
     ComparatorRefSet(COMP_BASE, COMP_REF_1_65V);
     ComparatorConfigure(COMP_BASE, 1,
@@ -214,7 +224,9 @@ int main(void)
     GPIOPinTypeComparatorOutput(GPIO_PORTD_BASE, GPIO_PIN_1);
     GPIOPinConfigure(GPIO_PD1_C1O);
 
-    // Configure Timers
+    /**
+     * Timer Configurations
+     */
 
     // Configure Timer3A for CPU load estimation
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
@@ -225,10 +237,20 @@ int main(void)
     // Get unloaded CPU count
     gCpuCountUnloaded = cpuLoadCount();
 
-    // Start BIOS
-    BIOS_start();
+    /**
+     * LCD Driver
+     */
 
-    // Code should never get here
+    Crystalfontz128x128_Init();
+    Crystalfontz128x128_SetOrientation(LCD_ORIENTATION_UP);
+    GrContextInit(&gContext, &g_sCrystalfontz128x128);
+    GrContextFontSet(&gContext, &g_sFontFixed6x8);
+
+    /**
+     * RTOS Initialization
+     */
+
+    BIOS_start();
     return 0;
 }
 
