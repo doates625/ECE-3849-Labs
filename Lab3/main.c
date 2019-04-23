@@ -77,8 +77,9 @@ volatile uint8_t gTrigState = 0;                        // Trigger state (0 = Ri
 volatile uint8_t gVoltScaleState = 3;                   // Voltage scale state (0 = 100mV, 1 = 200mV, 2 = 500mV, 3 = 1V)
 volatile uint8_t gDisplayState = 0;                     // Display state (0 = waveform, 1 = FFT)
 volatile bool gDMAPrimary = true;                       // Flag for DMA occurring in primary channel (false = 2nd channel)
-volatile uint32_t gPrevTime = 0;                        // Previous time of signal rising edge (clocks)
-volatile uint32_t gPeriod = 0;                          // Input signal period (clocks)
+volatile uint32_t gPeriodSum = 0;                       // Input signal period sum since last reset [clocks]
+volatile uint32_t gPeriodCount = 0;                     // Number of input periods since last reset
+volatile float gInputFrequency = 0.0f;                  // Input signal frequency estimate [Hz]
 
 // Non-Shared global variables
 tContext gContext;              // Graphics context handle
@@ -324,10 +325,16 @@ void TimerCaptureHwiFunc()
     // Clear interrupt flag
     TimerIntClear(TIMER0_BASE, TIMER_CAPA_EVENT);
 
-    // Measure period into global
+    // Previous time variable
+    static uint32_t sPrevTime = 0;
+
+    // Add to global sum
     uint32_t time = TimerValueGet(TIMER0_BASE, TIMER_A);
-    gPeriod = (time - gPrevTime) & 0xffff;
-    gPrevTime = time;
+    gPeriodSum += (time - sPrevTime) & 0xffff;
+    sPrevTime = time;
+
+    // Increment period counter
+    gPeriodCount++;
 }
 
 /**
@@ -337,6 +344,15 @@ void TimerCaptureHwiFunc()
 void ButtonClockFunc()
 {
     Semaphore_post(semTriggerButtonScan);
+}
+
+/**
+ * Frequency clock callback
+ * - Triggers frequency measurement task
+ */
+void FrequencyClockFunc()
+{
+    Semaphore_post(semTriggerFrequencyTask);
 }
 
 /**
@@ -503,6 +519,31 @@ void ButtonTaskFunc(UArg arg1, UArg arg2)
 }
 
 /**
+ * Frequency measurement task
+ * - Estimates frequency of input signal
+ * - Saves frequency to global gFrequency (in Hz)
+ */
+void FrequencyTaskFunc(UArg arg1, UArg arg2)
+{
+    while (1)
+    {
+        // Pend on triggering semaphore
+        Semaphore_pend(semTriggerFrequencyTask, BIOS_WAIT_FOREVER);
+
+        // Disable Hwis to access global data
+        IArg key = GateHwi_enter(gateHwi1);
+        uint32_t periodSum = gPeriodSum;
+        uint32_t periodCount = gPeriodCount;
+        gPeriodSum = 0;
+        gPeriodCount = 0;
+        GateHwi_leave(gateHwi1, key);
+
+        // Compute frequency
+        gInputFrequency = (float)periodCount / (float)periodSum * gSystemClockFrequency;
+    }
+}
+
+/**
  * User input task
  * - Updates state variables from button Bailbox input
  */
@@ -608,6 +649,12 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
                 case 3: snprintf(voltScaleStr, sizeof(voltScaleStr), "1.00V"); break;
             }
             GrStringDraw(&gContext, voltScaleStr, sizeof(voltScaleStr), /*x*/ 72, /*y*/ 8, /*opaque*/ false);
+
+            // Print frequency estimate
+            float inputFrequency = gInputFrequency;
+            char freqStr[20];
+            snprintf(freqStr, sizeof(freqStr), "Freq: %.3fHz", inputFrequency);
+            GrStringDraw(&gContext, freqStr, sizeof(freqStr), /*x*/ 9, /*y*/ 102, /*opaque*/ false);
         }
         else
         {
@@ -629,7 +676,7 @@ void DisplayTaskFunc(UArg arg1, UArg arg2)
         float cpuLoad = 1.0f - ((float)gCpuCountLoaded)/((float)gCpuCountUnloaded);
         char cpuLoadStr[20];
         snprintf(cpuLoadStr, sizeof(cpuLoadStr), "CPU Load: %.1f%%", cpuLoad * 100.0f);
-        GrStringDraw(&gContext, cpuLoadStr, sizeof(cpuLoadStr), /*x*/ 9, /*y*/ 113, /*opaque*/ false);
+        GrStringDraw(&gContext, cpuLoadStr, sizeof(cpuLoadStr), /*x*/ 9, /*y*/ 112, /*opaque*/ false);
 
         // Flush LCD frame buffer
         GrFlush(&gContext);
