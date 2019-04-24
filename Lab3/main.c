@@ -69,7 +69,7 @@ const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
 const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
 const uint32_t JOYSTICK_POS_THRESHOLD = 3595;   // JoyStick ADC positive threshold
 const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative threshold
-const uint32_t gPhaseIncrement = 26;             // phase increment for 18 kHz
+const uint32_t gPhaseIncrement = 167026312;     // phase increment for 18 kHz
 //TODO: the Exact number was 26.4, so either use 26 or 27
 
 
@@ -320,9 +320,13 @@ int main(void)
  */
 void PwmHwiFunc(void)
 {
-    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO); // clear PWM interrupt flag
+    // Clear interrupt flag
+    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+
+    // Increment phase
     gPhase += gPhaseIncrement;
-    // write directly to the Compare B register that determines the duty cycle
+
+    // Write to PWM Compare B
     PWM0_0_CMPB_R = 1 + gPWMWaveformTable[gPhase >> (32 - PWM_WAVEFORM_INDEX_BITS)];
 }
 

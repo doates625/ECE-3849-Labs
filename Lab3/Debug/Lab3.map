@@ -1,7 +1,7 @@
 ******************************************************************************
                   TI ARM Linker PC v18.1.2                     
 ******************************************************************************
->> Linked Wed Apr 24 10:52:53 2019
+>> Linked Wed Apr 24 11:25:05 2019
 
 OUTPUT FILE NAME:   <Lab3.out>
 ENTRY POINT SYMBOL: "_c_int00"  address: 00008c75
@@ -264,18 +264,17 @@ section   page    origin      length       input sections
                   00009b24    0000003a     grlib.lib : string.obj (.text:FontGlyphDataGet)
                   00009b5e    00000002     --HOLE-- [fill = 0]
                   00009b60    00000038     Crystalfontz128x128_ST7735.obj (.text:Crystalfontz128x128_Flush)
-                  00009b98    00000038     rtsv7M4_T_le_v4SPD16_eabi.lib : trgmsg.c.obj (.text:__TI_writemsg)
-                  00009bd0    00000038                                   : fs_tod_t2.asm.obj (.text)
-                  00009c08    00000038     sysbios.aem4f : BIOS.obj (.text:ti_sysbios_family_arm_m3_Hwi_excNoIsr__I)
-                  00009c40    00000038                   : BIOS.obj (.text:ti_sysbios_knl_Task_processVitalTaskFlag__I)
-                  00009c78    00000038     ti.targets.arm.rtsarm.aem4f : SysMin.oem4f (.text:xdc_runtime_SysMin_putch__E)
-                  00009cb0    00000038                                 : System.oem4f (.text:xdc_runtime_System_atexit__E)
-                  00009ce8    00000036     grlib.lib : line.obj (.text:GrClipCodeGet)
-                  00009d1e    00000002     --HOLE-- [fill = 0]
-                  00009d20    00000034     main.obj (.text:PwmHwiFunc)
-                  00009d54    00000034     driverlib.lib : sysctl.obj (.text:SysCtlPeripheralEnable)
-                  00009d88    00000034     rtsv7M4_T_le_v4SPD16_eabi.lib : trgmsg.c.obj (.text:__TI_readmsg)
-                  00009dbc    00000004     --HOLE-- [fill = 0]
+                  00009b98    00000038     main.obj (.text:PwmHwiFunc)
+                  00009bd0    00000038     rtsv7M4_T_le_v4SPD16_eabi.lib : trgmsg.c.obj (.text:__TI_writemsg)
+                  00009c08    00000038                                   : fs_tod_t2.asm.obj (.text)
+                  00009c40    00000038     sysbios.aem4f : BIOS.obj (.text:ti_sysbios_family_arm_m3_Hwi_excNoIsr__I)
+                  00009c78    00000038                   : BIOS.obj (.text:ti_sysbios_knl_Task_processVitalTaskFlag__I)
+                  00009cb0    00000038     ti.targets.arm.rtsarm.aem4f : SysMin.oem4f (.text:xdc_runtime_SysMin_putch__E)
+                  00009ce8    00000038                                 : System.oem4f (.text:xdc_runtime_System_atexit__E)
+                  00009d20    00000036     grlib.lib : line.obj (.text:GrClipCodeGet)
+                  00009d56    00000002     --HOLE-- [fill = 0]
+                  00009d58    00000034     driverlib.lib : sysctl.obj (.text:SysCtlPeripheralEnable)
+                  00009d8c    00000034     rtsv7M4_T_le_v4SPD16_eabi.lib : trgmsg.c.obj (.text:__TI_readmsg)
                   00009dc0    00000034     sysbios.aem4f : BIOS.obj (.text:ti_sysbios_family_arm_m3_Hwi_excNmi__I)
                   00009df4    00000004     --HOLE-- [fill = 0]
                   00009df8    00000034                   : BIOS.obj (.text:ti_sysbios_hal_Hwi_checkStack)
@@ -844,13 +843,13 @@ MODULE SUMMARY
        Module                                             code    ro data   rw data
        ------                                             ----    -------   -------
     .\
-       main.obj                                           3498    0         36201  
+       main.obj                                           3502    0         36201  
        Crystalfontz128x128_ST7735.obj                     958     40        32778  
        kiss_fft.obj                                       2602    0         0      
        HAL_EK_TM4C1294XL_Crystalfontz128x128_ST7735.obj   324     0         0      
        sysctl_pll.obj                                     72      0         0      
     +--+--------------------------------------------------+-------+---------+---------+
-       Total:                                             7454    40        68979  
+       Total:                                             7458    40        68979  
                                                                                    
     C:\Users\doate\Desktop\ECE-3849\ECE-3849-Labs\Lab3\Debug\configPkg\package\cfg\
        rtos_pem4f.oem4f                                   1546    8072      12500  
@@ -977,7 +976,7 @@ MODULE SUMMARY
        Stack:                                             0       0         768    
        Linker Generated:                                  0       775       0      
     +--+--------------------------------------------------+-------+---------+---------+
-       Grand Total:                                       45202   11512     82563  
+       Grand Total:                                       45206   11512     82563  
 
 
 LINKER GENERATED COPY TABLES
@@ -1021,7 +1020,7 @@ address   name
 0000d76c  ButtonTask                                                           
 00005341  ButtonTaskFunc                                                       
 0000533d  C$$EXIT                                                              
-00009bc7  C$$IO$$                                                              
+00009bff  C$$IO$$                                                              
 0000b055  CPUcpsid                                                             
 0000b061  CPUcpsie                                                             
 0000b1a3  ComparatorConfigure                                                  
@@ -1090,7 +1089,7 @@ address   name
 0000d780  ProcessingTask                                                       
 00004c59  ProcessingTaskFunc                                                   
 0000d7ac  PwmHwi                                                               
-00009d21  PwmHwiFunc                                                           
+00009b99  PwmHwiFunc                                                           
 UNDEFED   SHT$$INIT_ARRAY$$Base                                                
 UNDEFED   SHT$$INIT_ARRAY$$Limit                                               
 0000b1bb  SSIBusy                                                              
@@ -1100,7 +1099,7 @@ UNDEFED   SHT$$INIT_ARRAY$$Limit
 00003ad1  SysCtlClockFreqSet                                                   
 000096bb  SysCtlDelay                                                          
 00009319  SysCtlFrequencyGet                                                   
-00009d55  SysCtlPeripheralEnable                                               
+00009d59  SysCtlPeripheralEnable                                               
 0000d798  TimerCaptureHwi                                                      
 00009709  TimerCaptureHwiFunc                                                  
 0000891d  TimerConfigure                                                       
@@ -1135,9 +1134,9 @@ ffffffff  __TI_pprof_out_hndl
 00000041  __TI_printfi                                                         
 ffffffff  __TI_prof_data_size                                                  
 ffffffff  __TI_prof_data_start                                                 
-00009d89  __TI_readmsg                                                         
+00009d8d  __TI_readmsg                                                         
 0000dc68  __TI_static_base__                                                   
-00009b99  __TI_writemsg                                                        
+00009bd1  __TI_writemsg                                                        
 0000b0b1  __TI_zero_init                                                       
 000000c2  __TRDR__                                                             
 00007bf7  __aeabi_cdcmpeq                                                      
@@ -1150,7 +1149,7 @@ ffffffff  __TI_prof_data_start
 0000635d  __aeabi_dmul                                                         
 00004499  __aeabi_dsub                                                         
 0000b1cd  __aeabi_errno_addr                                                   
-00009bd1  __aeabi_f2d                                                          
+00009c09  __aeabi_f2d                                                          
 0000a1ff  __aeabi_i2d                                                          
 00003147  __aeabi_idiv0                                                        
 00003147  __aeabi_ldiv0                                                        
@@ -1350,7 +1349,7 @@ ffffffff  binit
 0000db0c  ti_sysbios_family_arm_m3_Hwi_excHookFuncs__C                         
 000055d9  ti_sysbios_family_arm_m3_Hwi_excMemFault__I                          
 00009dc1  ti_sysbios_family_arm_m3_Hwi_excNmi__I                               
-00009c09  ti_sysbios_family_arm_m3_Hwi_excNoIsr__I                             
+00009c41  ti_sysbios_family_arm_m3_Hwi_excNoIsr__I                             
 00009511  ti_sysbios_family_arm_m3_Hwi_excReserved__I                          
 00009a69  ti_sysbios_family_arm_m3_Hwi_excSvCall__I                            
 00004f29  ti_sysbios_family_arm_m3_Hwi_excUsageFault__I                        
@@ -1561,7 +1560,7 @@ e000e000  ti_sysbios_family_arm_m3_Hwi_nvic
 000082d1  ti_sysbios_knl_Task_exit__E                                          
 0000dbb4  ti_sysbios_knl_Task_numConstructedTasks__C                           
 00007a59  ti_sysbios_knl_Task_postInit__I                                      
-00009c41  ti_sysbios_knl_Task_processVitalTaskFlag__I                          
+00009c79  ti_sysbios_knl_Task_processVitalTaskFlag__I                          
 0000a571  ti_sysbios_knl_Task_restoreHwi__E                                    
 0000a291  ti_sysbios_knl_Task_restore__E                                       
 00008981  ti_sysbios_knl_Task_schedule__I                                      
@@ -1661,7 +1660,7 @@ e000e000  ti_sysbios_family_arm_m3_Hwi_nvic
 00009869  xdc_runtime_SysMin_flush__E                                          
 0000dc14  xdc_runtime_SysMin_outputFunc__C                                     
 0000a671  xdc_runtime_SysMin_output__I                                         
-00009c79  xdc_runtime_SysMin_putch__E                                          
+00009cb1  xdc_runtime_SysMin_putch__E                                          
 0000afc1  xdc_runtime_SysMin_ready__E                                          
 0000aa19  xdc_runtime_System_Module_GateProxy_Handle__label__S                 
 0000a719  xdc_runtime_System_Module_GateProxy_Object__delete__S                
@@ -1675,14 +1674,14 @@ e000e000  ti_sysbios_family_arm_m3_Hwi_nvic
 0000a111  xdc_runtime_System_SupportProxy_abort__E                             
 0000a99d  xdc_runtime_System_SupportProxy_exit__E                              
 00009869  xdc_runtime_System_SupportProxy_flush__E                             
-00009c79  xdc_runtime_System_SupportProxy_putch__E                             
+00009cb1  xdc_runtime_System_SupportProxy_putch__E                             
 0000afc1  xdc_runtime_System_SupportProxy_ready__E                             
 0000dc1c  xdc_runtime_System_abortFxn__C                                       
 0000533d  xdc_runtime_System_abortStd__E                                       
 0000a9b9  xdc_runtime_System_abort__E                                          
 0000aab9  xdc_runtime_System_aprintf__E                                        
 00006925  xdc_runtime_System_aprintf_va__F                                     
-00009cb1  xdc_runtime_System_atexit__E                                         
+00009ce9  xdc_runtime_System_atexit__E                                         
 0000a455  xdc_runtime_System_avprintf__E                                       
 000025d9  xdc_runtime_System_doPrint__I                                        
 0000dc20  xdc_runtime_System_exitFxn__C                                        
@@ -1925,17 +1924,17 @@ address   name
 00009a69  ti_sysbios_family_arm_m3_Hwi_excSvCall__I                            
 00009aa9  ti_sysbios_heaps_HeapMem_init__I                                     
 00009ae9  ti_sysbios_knl_Swi_restore__E                                        
-00009b99  __TI_writemsg                                                        
-00009bc7  C$$IO$$                                                              
-00009bd1  __aeabi_f2d                                                          
-00009c09  ti_sysbios_family_arm_m3_Hwi_excNoIsr__I                             
-00009c41  ti_sysbios_knl_Task_processVitalTaskFlag__I                          
-00009c79  xdc_runtime_SysMin_putch__E                                          
-00009c79  xdc_runtime_System_SupportProxy_putch__E                             
-00009cb1  xdc_runtime_System_atexit__E                                         
-00009d21  PwmHwiFunc                                                           
-00009d55  SysCtlPeripheralEnable                                               
-00009d89  __TI_readmsg                                                         
+00009b99  PwmHwiFunc                                                           
+00009bd1  __TI_writemsg                                                        
+00009bff  C$$IO$$                                                              
+00009c09  __aeabi_f2d                                                          
+00009c41  ti_sysbios_family_arm_m3_Hwi_excNoIsr__I                             
+00009c79  ti_sysbios_knl_Task_processVitalTaskFlag__I                          
+00009cb1  xdc_runtime_SysMin_putch__E                                          
+00009cb1  xdc_runtime_System_SupportProxy_putch__E                             
+00009ce9  xdc_runtime_System_atexit__E                                         
+00009d59  SysCtlPeripheralEnable                                               
+00009d8d  __TI_readmsg                                                         
 00009dc1  ti_sysbios_family_arm_m3_Hwi_excNmi__I                               
 00009df9  ti_sysbios_hal_Hwi_checkStack                                        
 00009e2d  xdc_runtime_Core_assignLabel__I                                      
