@@ -61,6 +61,9 @@ extern const ti_sysbios_knl_Task_Handle FrequencyTask;
 #include <ti/sysbios/gates/GateHwi.h>
 extern const ti_sysbios_gates_GateHwi_Handle gateHwi1;
 
+#include <ti/sysbios/family/arm/m3/Hwi.h>
+extern const ti_sysbios_family_arm_m3_Hwi_Handle PwmHwi;
+
 extern int xdc_runtime_Startup__EXECFXN__C;
 
 extern int xdc_runtime_Startup__RESETFXN__C;

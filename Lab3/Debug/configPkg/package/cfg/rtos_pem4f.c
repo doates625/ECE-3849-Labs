@@ -1120,8 +1120,11 @@ extern xdc_Void AdcHwiFunc(xdc_UArg);
 /* --> TimerCaptureHwiFunc */
 extern xdc_Void TimerCaptureHwiFunc(xdc_UArg);
 
+/* --> PwmHwiFunc */
+extern xdc_Void PwmHwiFunc(xdc_UArg);
+
 /* Object__table__V */
-ti_sysbios_family_arm_m3_Hwi_Object__ ti_sysbios_family_arm_m3_Hwi_Object__table__V[3];
+ti_sysbios_family_arm_m3_Hwi_Object__ ti_sysbios_family_arm_m3_Hwi_Object__table__V[4];
 
 /* Module_State__ */
 typedef struct ti_sysbios_family_arm_m3_Hwi_Module_State__ {
@@ -1789,7 +1792,7 @@ typedef struct xdc_runtime_Text_Module_State__ {
 xdc_runtime_Text_Module_State__ xdc_runtime_Text_Module__state__V;
 
 /* --> xdc_runtime_Text_charTab__A */
-const __T1_xdc_runtime_Text_charTab xdc_runtime_Text_charTab__A[6684];
+const __T1_xdc_runtime_Text_charTab xdc_runtime_Text_charTab__A[6691];
 
 /* --> xdc_runtime_Text_nodeTab__A */
 const __T1_xdc_runtime_Text_nodeTab xdc_runtime_Text_nodeTab__A[50];
@@ -2986,7 +2989,7 @@ ti_sysbios_family_arm_lm4_Timer_Object__ ti_sysbios_family_arm_lm4_Timer_Object_
             (xdc_Bits32)0x0,  /* hi */
             (xdc_Bits32)0x0,  /* lo */
         },  /* extFreq */
-        (ti_sysbios_family_arm_m3_Hwi_Handle)&ti_sysbios_family_arm_m3_Hwi_Object__table__V[2],  /* hwi */
+        (ti_sysbios_family_arm_m3_Hwi_Handle)&ti_sysbios_family_arm_m3_Hwi_Object__table__V[3],  /* hwi */
         (xdc_UInt)0xffffffff,  /* prevThreshold */
         (xdc_UInt)0x0,  /* rollovers */
         (xdc_UInt)0x0,  /* savedCurrCount */
@@ -3302,7 +3305,7 @@ ti_sysbios_family_arm_m3_Hwi_Module__ ti_sysbios_family_arm_m3_Hwi_Module__root_
 };
 
 /* Object__table__V */
-ti_sysbios_family_arm_m3_Hwi_Object__ ti_sysbios_family_arm_m3_Hwi_Object__table__V[3] = {
+ti_sysbios_family_arm_m3_Hwi_Object__ ti_sysbios_family_arm_m3_Hwi_Object__table__V[4] = {
     {/* instance#0 */
         0,
         ((xdc_UArg)(0x0)),  /* arg */
@@ -3322,6 +3325,15 @@ ti_sysbios_family_arm_m3_Hwi_Object__ ti_sysbios_family_arm_m3_Hwi_Object__table
         ((void*)0),  /* hookEnv */
     },
     {/* instance#2 */
+        0,
+        ((xdc_UArg)(0x0)),  /* arg */
+        ((xdc_Void(*)(xdc_UArg))((xdc_Fxn)PwmHwiFunc)),  /* fxn */
+        ((xdc_UArg)(0x3)),  /* irp */
+        (xdc_UInt8)0x0,  /* priority */
+        (xdc_Int16)0x1a,  /* intNum */
+        ((void*)0),  /* hookEnv */
+    },
+    {/* instance#3 */
         0,
         ((xdc_UArg)((void*)(ti_sysbios_family_arm_lm4_Timer_Handle)&ti_sysbios_family_arm_lm4_Timer_Object__table__V[0])),  /* arg */
         ((xdc_Void(*)(xdc_UArg))((xdc_Fxn)ti_sysbios_family_arm_lm4_Timer_isrStub__E)),  /* fxn */
@@ -3437,7 +3449,7 @@ __FAR__ const CT__ti_sysbios_family_arm_m3_Hwi_Module__startupDoneFxn ti_sysbios
 
 /* Object__count__C */
 #pragma DATA_SECTION(ti_sysbios_family_arm_m3_Hwi_Object__count__C, ".const:ti_sysbios_family_arm_m3_Hwi_Object__count__C");
-__FAR__ const CT__ti_sysbios_family_arm_m3_Hwi_Object__count ti_sysbios_family_arm_m3_Hwi_Object__count__C = 3;
+__FAR__ const CT__ti_sysbios_family_arm_m3_Hwi_Object__count ti_sysbios_family_arm_m3_Hwi_Object__count__C = 4;
 
 /* Object__heap__C */
 #pragma DATA_SECTION(ti_sysbios_family_arm_m3_Hwi_Object__heap__C, ".const:ti_sysbios_family_arm_m3_Hwi_Object__heap__C");
@@ -7459,7 +7471,7 @@ xdc_runtime_Text_Module_State__ xdc_runtime_Text_Module__state__V = {
 
 /* --> xdc_runtime_Text_charTab__A */
 #pragma DATA_SECTION(xdc_runtime_Text_charTab__A, ".const:xdc_runtime_Text_charTab__A");
-const __T1_xdc_runtime_Text_charTab xdc_runtime_Text_charTab__A[6684] = {
+const __T1_xdc_runtime_Text_charTab xdc_runtime_Text_charTab__A[6691] = {
     (xdc_Char)0x0,  /* [0] */
     (xdc_Char)0x41,  /* [1] */
     (xdc_Char)0x5f,  /* [2] */
@@ -14126,24 +14138,31 @@ const __T1_xdc_runtime_Text_charTab xdc_runtime_Text_charTab__A[6684] = {
     (xdc_Char)0x77,  /* [6663] */
     (xdc_Char)0x69,  /* [6664] */
     (xdc_Char)0x0,  /* [6665] */
-    (xdc_Char)0x67,  /* [6666] */
-    (xdc_Char)0x61,  /* [6667] */
-    (xdc_Char)0x74,  /* [6668] */
-    (xdc_Char)0x65,  /* [6669] */
-    (xdc_Char)0x48,  /* [6670] */
-    (xdc_Char)0x77,  /* [6671] */
-    (xdc_Char)0x69,  /* [6672] */
-    (xdc_Char)0x30,  /* [6673] */
-    (xdc_Char)0x0,  /* [6674] */
-    (xdc_Char)0x67,  /* [6675] */
-    (xdc_Char)0x61,  /* [6676] */
-    (xdc_Char)0x74,  /* [6677] */
-    (xdc_Char)0x65,  /* [6678] */
-    (xdc_Char)0x48,  /* [6679] */
-    (xdc_Char)0x77,  /* [6680] */
-    (xdc_Char)0x69,  /* [6681] */
-    (xdc_Char)0x31,  /* [6682] */
-    (xdc_Char)0x0,  /* [6683] */
+    (xdc_Char)0x50,  /* [6666] */
+    (xdc_Char)0x77,  /* [6667] */
+    (xdc_Char)0x6d,  /* [6668] */
+    (xdc_Char)0x48,  /* [6669] */
+    (xdc_Char)0x77,  /* [6670] */
+    (xdc_Char)0x69,  /* [6671] */
+    (xdc_Char)0x0,  /* [6672] */
+    (xdc_Char)0x67,  /* [6673] */
+    (xdc_Char)0x61,  /* [6674] */
+    (xdc_Char)0x74,  /* [6675] */
+    (xdc_Char)0x65,  /* [6676] */
+    (xdc_Char)0x48,  /* [6677] */
+    (xdc_Char)0x77,  /* [6678] */
+    (xdc_Char)0x69,  /* [6679] */
+    (xdc_Char)0x30,  /* [6680] */
+    (xdc_Char)0x0,  /* [6681] */
+    (xdc_Char)0x67,  /* [6682] */
+    (xdc_Char)0x61,  /* [6683] */
+    (xdc_Char)0x74,  /* [6684] */
+    (xdc_Char)0x65,  /* [6685] */
+    (xdc_Char)0x48,  /* [6686] */
+    (xdc_Char)0x77,  /* [6687] */
+    (xdc_Char)0x69,  /* [6688] */
+    (xdc_Char)0x31,  /* [6689] */
+    (xdc_Char)0x0,  /* [6690] */
 };
 
 /* --> xdc_runtime_Text_nodeTab__A */
@@ -14449,7 +14468,7 @@ __FAR__ const CT__xdc_runtime_Text_nodeTab xdc_runtime_Text_nodeTab__C = ((CT__x
 
 /* charCnt__C */
 #pragma DATA_SECTION(xdc_runtime_Text_charCnt__C, ".const:xdc_runtime_Text_charCnt__C");
-__FAR__ const CT__xdc_runtime_Text_charCnt xdc_runtime_Text_charCnt__C = (xdc_Int16)0x1a1c;
+__FAR__ const CT__xdc_runtime_Text_charCnt xdc_runtime_Text_charCnt__C = (xdc_Int16)0x1a23;
 
 /* nodeCnt__C */
 #pragma DATA_SECTION(xdc_runtime_Text_nodeCnt__C, ".const:xdc_runtime_Text_nodeCnt__C");
@@ -18935,4 +18954,11 @@ const ti_sysbios_knl_Task_Handle FrequencyTask = (ti_sysbios_knl_Task_Handle)((t
 #endif
 #endif
 const ti_sysbios_gates_GateHwi_Handle gateHwi1 = (ti_sysbios_gates_GateHwi_Handle)((ti_sysbios_gates_GateHwi_Handle)&ti_sysbios_gates_GateHwi_Object__table__V[1]);
+
+#ifdef __GNUC__
+#ifndef __TI_COMPILER_VERSION__
+    __attribute__ ((externally_visible))
+#endif
+#endif
+const ti_sysbios_family_arm_m3_Hwi_Handle PwmHwi = (ti_sysbios_family_arm_m3_Hwi_Handle)((ti_sysbios_family_arm_m3_Hwi_Handle)&ti_sysbios_family_arm_m3_Hwi_Object__table__V[2]);
 

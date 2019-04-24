@@ -29,6 +29,7 @@
 #include "sysctl_pll.h"
 #include "inc/hw_memmap.h"
 #include "inc/tm4c1294ncpdt.h"
+#include "inc/tm4c1294ncpdt.h"
 #include "driverlib/interrupt.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
@@ -37,6 +38,7 @@
 #include "driverlib/udma.h"
 #include "driverlib/comp.h"
 #include "driverlib/pin_map.h"
+#include "driverlib/pwm.h"
 #include "Crystalfontz128x128_ST7735.h"
 
 // Kiss FFT Library
@@ -54,6 +56,9 @@ tDMAControlTable gDMAControlTable[64];     // uDMA control table (global)
 #define FFT_BUFFER_SIZE 1024
 #define PI 3.14159265358979f
 #define KISS_FFT_CFG_SIZE (sizeof(struct kiss_fft_state) + sizeof(kiss_fft_cpx)*(FFT_BUFFER_SIZE - 1))
+#define PWM_PERIOD 258                          // PWM period = 2^8 + 2 system clock cycles
+#define PWM_WAVEFORM_INDEX_BITS 10
+#define PWM_WAVEFORM_TABLE_SIZE (1 << PWM_WAVEFORM_INDEX_BITS)
 
 // Constants
 const uint32_t CRYSTAL_FREQUENCY = 25000000;    // Crystal oscillator frequency [Hz]
@@ -64,6 +69,9 @@ const float VIN_RANGE = 3.3f;                   // Input voltage range [V]
 const uint32_t PIXELS_PER_DIV = 20;             // Scope pixels per division
 const uint32_t JOYSTICK_POS_THRESHOLD = 3595;   // JoyStick ADC positive threshold
 const uint32_t JOYSTICK_NEG_THRESHOLD = 500;    // JoyStick ADC negative threshold
+const uint32_t gPhaseIncrement = 26;             // phase increment for 18 kHz
+//TODO: the Exact number was 26.4, so either use 26 or 27
+
 
 // Shared Global Variables
 volatile uint32_t gSystemClockFrequency = 0;            // System clock frequency [Hz]
@@ -80,7 +88,8 @@ volatile bool gDMAPrimary = true;                       // Flag for DMA occurrin
 volatile uint32_t gPeriodSum = 0;                       // Input signal period sum since last reset [clocks]
 volatile uint32_t gPeriodCount = 0;                     // Number of input periods since last reset
 volatile float gInputFrequency = 0.0f;                  // Input signal frequency estimate [Hz]
-
+volatile uint32_t gPhase = 0;                      // phase accumulator
+volatile uint8_t gPWMWaveformTable[PWM_WAVEFORM_TABLE_SIZE] = {0}; //PWM output table with a given table size
 // Non-Shared global variables
 tContext gContext;              // Graphics context handle
 uint32_t gCpuCountUnloaded = 0; // CPU unloaded count (CPU load estimation)
@@ -259,6 +268,36 @@ int main(void)
     gCpuCountUnloaded = cpuLoadCount();
 
     /**
+     * PWM peripheral initialization
+     */
+
+    // use M0PWM1, at GPIO PF1, which is BoosterPack Connector #1 pin 40
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
+    GPIOPinTypePWM(GPIO_PORTF_BASE, GPIO_PIN_1); // PF1 = M0PWM1
+    GPIOPinConfigure(GPIO_PF1_M0PWM1);
+    GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_1, GPIO_STRENGTH_8MA,
+    GPIO_PIN_TYPE_STD);
+    // configure the PWM0 peripheral
+    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
+    PWMClockSet(PWM0_BASE, PWM_SYSCLK_DIV_1); // use system clock
+    PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_DOWN | PWM_GEN_MODE_NO_SYNC);
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, PWM_PERIOD);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_1, PWM_PERIOD/2); // initial 50% duty cycle
+    PWMOutputInvert(PWM0_BASE, PWM_OUT_1_BIT, true); // invert PWM output
+    PWMOutputState(PWM0_BASE, PWM_OUT_1_BIT, true); // enable PWM output
+    PWMGenEnable(PWM0_BASE, PWM_GEN_0); // enable PWM generator
+    // enable PWM interrupt in the PWM peripheral
+    PWMGenIntTrigEnable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    PWMIntEnable(PWM0_BASE, PWM_INT_GEN_0);
+
+    uint32_t i;
+    const float freq = 2.0f * PI / 1024.0f;
+    for (i = 0; i < PWM_WAVEFORM_TABLE_SIZE; i++)
+    {
+        gPWMWaveformTable[i] = 127 + (int8_t)(120.0f * sinf(freq * (float)i));
+    }
+
+    /**
      * LCD Driver
      */
 
@@ -274,6 +313,20 @@ int main(void)
     BIOS_start();
     return 0;
 }
+
+/**
+ * PWM hardware interrupt
+ */
+void PwmHwiFunc(void)
+{
+    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO); // clear PWM interrupt flag
+    gPhase += gPhaseIncrement;
+    // write directly to the Compare B register that determines the duty cycle
+    PWM0_0_CMPB_R = 1 + gPWMWaveformTable[gPhase >> (32 - PWM_WAVEFORM_INDEX_BITS)];
+}
+
+
+
 
 /**
  * ADC sampling ISR
