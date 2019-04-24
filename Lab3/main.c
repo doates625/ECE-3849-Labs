@@ -110,6 +110,7 @@ uint32_t cpuLoadCount(void);
 /**
  * Main Function
  */
+
 int main(void)
 {
     /**
