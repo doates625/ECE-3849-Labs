@@ -1,7 +1,7 @@
 ******************************************************************************
                   TI ARM Linker PC v18.1.2                     
 ******************************************************************************
->> Linked Wed Apr 24 11:25:05 2019
+>> Linked Wed Apr 24 11:45:15 2019
 
 OUTPUT FILE NAME:   <Lab3.out>
 ENTRY POINT SYMBOL: "_c_int00"  address: 00008c75
@@ -27,8 +27,8 @@ run origin  load origin   length   init length attrs members
 20000000    20000000    00000360   00000000    rw-
   20000000    20000000    00000360   00000000    rw- .vecs
 20000400    20000400    00013f38   00000000    rw-
-  20000400    20000400    0000b100   00000000    rw- .bss
-  2000b500    2000b500    00008b36   00000000    rw- .data
+  20000400    20000400    0000b500   00000000    rw- .bss
+  2000b900    2000b900    00008736   00000000    rw- .data
   20014038    20014038    00000300   00000000    rw- .stack
 
 
@@ -737,9 +737,10 @@ section   page    origin      length       input sections
                   0000dc64    00000002     rtos_pem4f.oem4f (.const:xdc_runtime_Text_unnamedModsLastId__C)
 
 .cinit     0    0000dc68    00000308     
-                  0000dc68    000002d3     (.cinit..data.load) [load image, compression = lzss]
-                  0000df3b    00000001     --HOLE-- [fill = 0]
-                  0000df3c    0000000c     (__TI_handler_table)
+                  0000dc68    000002cf     (.cinit..data.load) [load image, compression = lzss]
+                  0000df37    00000001     --HOLE-- [fill = 0]
+                  0000df38    0000000c     (__TI_handler_table)
+                  0000df44    00000004     --HOLE-- [fill = 0]
                   0000df48    00000008     (.cinit..bss.load) [load image, compression = zero_init]
                   0000df50    00000008     (.cinit..vecs.load) [load image, compression = zero_init]
                   0000df58    00000018     (__TI_cinit_table)
@@ -751,7 +752,7 @@ section   page    origin      length       input sections
 *          0    00000000    0000003c     
                   00000000    0000003c     rtos_pem4f.oem4f (.resetVecs)
 
-.bss       0    20000400    0000b100     UNINITIALIZED
+.bss       0    20000400    0000b500     UNINITIALIZED
                   20000400    00002108     main.obj (.bss:kiss_fft_cfg_buffer)
                   20002508    00002000     main.obj (.bss:in)
                   20004508    00002000     main.obj (.bss:out)
@@ -772,16 +773,16 @@ section   page    origin      length       input sections
                   2000a3ed    00000001     (.common:Lcd_PenSolid)
                   2000a3ee    00000012     --HOLE--
                   2000a400    00000400     (.common:gDMAControlTable)
-                  2000a800    00000400     (.common:ti_sysbios_heaps_HeapMem_Instance_State_0_buf__A)
-                  2000ac00    00000360     (.common:ti_sysbios_family_arm_m3_Hwi_dispatchTable)
-                  2000af60    00000200     (.common:gPixelBuffer)
-                  2000b160    00000200     (.common:gWaveformBuffer)
-                  2000b360    00000120     rtsv7M4_T_le_v4SPD16_eabi.lib : trgmsg.c.obj (.bss:_CIOBUF_)
-                  2000b480    00000080     (.common:xdc_runtime_SysMin_Module_State_0_outbuf__A)
+                  2000a800    00000400     (.common:gPWMWaveformTable)
+                  2000ac00    00000400     (.common:ti_sysbios_heaps_HeapMem_Instance_State_0_buf__A)
+                  2000b000    00000360     (.common:ti_sysbios_family_arm_m3_Hwi_dispatchTable)
+                  2000b360    00000200     (.common:gPixelBuffer)
+                  2000b560    00000200     (.common:gWaveformBuffer)
+                  2000b760    00000120     rtsv7M4_T_le_v4SPD16_eabi.lib : trgmsg.c.obj (.bss:_CIOBUF_)
+                  2000b880    00000080     (.common:xdc_runtime_SysMin_Module_State_0_outbuf__A)
 
-.data      0    2000b500    00008b36     UNINITIALIZED
-                  2000b500    00008000     Crystalfontz128x128_ST7735.obj (.data:Lcd_buffer)
-                  20013500    00000400     main.obj (.data:gPWMWaveformTable)
+.data      0    2000b900    00008736     UNINITIALIZED
+                  2000b900    00008000     Crystalfontz128x128_ST7735.obj (.data:Lcd_buffer)
                   20013900    00000214     rtos_pem4f.oem4f (.data:ti_sysbios_knl_Task_Object__table__V)
                   20013b14    00000080     rtos_pem4f.oem4f (.data:ti_sysbios_knl_Swi_Module_State_0_readyQ__A)
                   20013b94    00000080     rtos_pem4f.oem4f (.data:ti_sysbios_knl_Task_Module_State_0_readyQ__A)
@@ -974,22 +975,22 @@ MODULE SUMMARY
        Total:                                             15221   601       312    
                                                                                    
        Stack:                                             0       0         768    
-       Linker Generated:                                  0       775       0      
+       Linker Generated:                                  0       771       0      
     +--+--------------------------------------------------+-------+---------+---------+
-       Grand Total:                                       45206   11512     82563  
+       Grand Total:                                       45206   11508     82563  
 
 
 LINKER GENERATED COPY TABLES
 
 __TI_cinit_table @ 0000df58 records: 3, size/record: 8, table size: 24
-	.data: load addr=0000dc68, load size=000002d3 bytes, run addr=2000b500, run size=00008b36 bytes, compression=lzss
-	.bss: load addr=0000df48, load size=00000008 bytes, run addr=20000400, run size=0000b100 bytes, compression=zero_init
+	.data: load addr=0000dc68, load size=000002cf bytes, run addr=2000b900, run size=00008736 bytes, compression=lzss
+	.bss: load addr=0000df48, load size=00000008 bytes, run addr=20000400, run size=0000b500 bytes, compression=zero_init
 	.vecs: load addr=0000df50, load size=00000008 bytes, run addr=20000000, run size=00000360 bytes, compression=zero_init
 
 
 LINKER GENERATED HANDLER TABLE
 
-__TI_handler_table @ 0000df3c records: 3, size/record: 4, table size: 12
+__TI_handler_table @ 0000df38 records: 3, size/record: 4, table size: 12
 	index: 0, handler: __TI_decompress_lzss
 	index: 1, handler: __TI_decompress_none
 	index: 2, handler: __TI_zero_init
@@ -1075,7 +1076,7 @@ address   name
 2000a3e4  Lcd_ScreenHeigth                                                     
 2000a3e6  Lcd_ScreenWidth                                                      
 2000a3e8  Lcd_TouchTrim                                                        
-2000b500  Lcd_buffer                                                           
+2000b900  Lcd_buffer                                                           
 0000aced  PWMClockSet                                                          
 0000a623  PWMGenConfigure                                                      
 0000b08d  PWMGenEnable                                                         
@@ -1117,7 +1118,7 @@ UNDEFED   SHT$$INIT_ARRAY$$Limit
 0000d770  WaveformTask                                                         
 00005491  WaveformTaskFunc                                                     
 00000000  __ASM__                                                              
-2000b360  __CIOBUF_                                                            
+2000b760  __CIOBUF_                                                            
 00000068  __ISA__                                                              
 0000007b  __PLAT__                                                             
 20014338  __STACK_END                                                          
@@ -1125,8 +1126,8 @@ UNDEFED   SHT$$INIT_ARRAY$$Limit
 0000009c  __TARG__                                                             
 0000df58  __TI_CINIT_Base                                                      
 0000df70  __TI_CINIT_Limit                                                     
-0000df3c  __TI_Handler_Table_Base                                              
-0000df48  __TI_Handler_Table_Limit                                             
+0000df38  __TI_Handler_Table_Base                                              
+0000df44  __TI_Handler_Table_Limit                                             
 000073c1  __TI_auto_init                                                       
 000086ad  __TI_decompress_lzss                                                 
 0000b01b  __TI_decompress_none                                                 
@@ -1206,16 +1207,16 @@ ffffffff  binit
 20013ea6  gDisplayState                                                        
 20009308  gFFTBuffer                                                           
 20013eb0  gInputFrequency                                                      
-20013500  gPWMWaveformTable                                                    
+2000a800  gPWMWaveformTable                                                    
 20013eac  gPeriodCount                                                         
 20013ea8  gPeriodSum                                                           
 20013eb4  gPhase                                                               
-2000af60  gPixelBuffer                                                         
+2000b360  gPixelBuffer                                                         
 20013e98  gSystemClockFrequency                                                
 20013e9c  gTimeMilliseconds                                                    
 20013ea4  gTrigState                                                           
 20013ea5  gVoltScaleState                                                      
-2000b160  gWaveformBuffer                                                      
+2000b560  gWaveformBuffer                                                      
 0000da74  g_psDefaultCodePointMapTable                                         
 0000d858  g_sCrystalfontz128x128                                               
 0000d46c  g_sFontFixed6x8                                                      
@@ -1332,7 +1333,7 @@ ffffffff  binit
 0000db04  ti_sysbios_family_arm_m3_Hwi_ccr__C                                  
 00009481  ti_sysbios_family_arm_m3_Hwi_disableInterrupt__E                     
 000088b9  ti_sysbios_family_arm_m3_Hwi_dispatchC__I                            
-2000ac00  ti_sysbios_family_arm_m3_Hwi_dispatchTable                           
+2000b000  ti_sysbios_family_arm_m3_Hwi_dispatchTable                           
 00006745  ti_sysbios_family_arm_m3_Hwi_dispatch__I                             
 0000b1e1  ti_sysbios_family_arm_m3_Hwi_doSwiRestore__I                         
 0000b201  ti_sysbios_family_arm_m3_Hwi_doTaskRestore__I                        
@@ -1427,7 +1428,7 @@ e000e000  ti_sysbios_family_arm_m3_Hwi_nvic
 0000db3c  ti_sysbios_heaps_HeapMem_A_zeroBlock__C                              
 0000db40  ti_sysbios_heaps_HeapMem_E_memory__C                                 
 0000aa59  ti_sysbios_heaps_HeapMem_Handle__label__S                            
-2000a800  ti_sysbios_heaps_HeapMem_Instance_State_0_buf__A                     
+2000ac00  ti_sysbios_heaps_HeapMem_Instance_State_0_buf__A                     
 00005861  ti_sysbios_heaps_HeapMem_Instance_init__E                            
 0000aa39  ti_sysbios_heaps_HeapMem_Module_GateProxy_Handle__label__S           
 0000a521  ti_sysbios_heaps_HeapMem_Module_GateProxy_Object__delete__S          
@@ -1650,7 +1651,7 @@ e000e000  ti_sysbios_family_arm_m3_Hwi_nvic
 0000d8a8  xdc_runtime_Startup_sfxnTab__A                                       
 0000dc0c  xdc_runtime_Startup_sfxnTab__C                                       
 0000664d  xdc_runtime_Startup_startMods__I                                     
-2000b480  xdc_runtime_SysMin_Module_State_0_outbuf__A                          
+2000b880  xdc_runtime_SysMin_Module_State_0_outbuf__A                          
 20013fb8  xdc_runtime_SysMin_Module__state__V                                  
 0000a7b9  xdc_runtime_SysMin_Module_startup__E                                 
 0000a111  xdc_runtime_SysMin_abort__E                                          
@@ -2345,8 +2346,8 @@ address   name
 0000dc62  xdc_runtime_Text_registryModsLastId__C                               
 0000dc64  xdc_runtime_Text_unnamedModsLastId__C                                
 0000dc68  __TI_static_base__                                                   
-0000df3c  __TI_Handler_Table_Base                                              
-0000df48  __TI_Handler_Table_Limit                                             
+0000df38  __TI_Handler_Table_Base                                              
+0000df44  __TI_Handler_Table_Limit                                             
 0000df58  __TI_CINIT_Base                                                      
 0000df70  __TI_CINIT_Limit                                                     
 20000000  ti_sysbios_family_arm_m3_Hwi_ramVectors                              
@@ -2371,14 +2372,14 @@ address   name
 2000a3ec  Lcd_Orientation                                                      
 2000a3ed  Lcd_PenSolid                                                         
 2000a400  gDMAControlTable                                                     
-2000a800  ti_sysbios_heaps_HeapMem_Instance_State_0_buf__A                     
-2000ac00  ti_sysbios_family_arm_m3_Hwi_dispatchTable                           
-2000af60  gPixelBuffer                                                         
-2000b160  gWaveformBuffer                                                      
-2000b360  __CIOBUF_                                                            
-2000b480  xdc_runtime_SysMin_Module_State_0_outbuf__A                          
-2000b500  Lcd_buffer                                                           
-20013500  gPWMWaveformTable                                                    
+2000a800  gPWMWaveformTable                                                    
+2000ac00  ti_sysbios_heaps_HeapMem_Instance_State_0_buf__A                     
+2000b000  ti_sysbios_family_arm_m3_Hwi_dispatchTable                           
+2000b360  gPixelBuffer                                                         
+2000b560  gWaveformBuffer                                                      
+2000b760  __CIOBUF_                                                            
+2000b880  xdc_runtime_SysMin_Module_State_0_outbuf__A                          
+2000b900  Lcd_buffer                                                           
 20013900  ti_sysbios_knl_Task_Object__table__V                                 
 20013b14  ti_sysbios_knl_Swi_Module_State_0_readyQ__A                          
 20013b94  ti_sysbios_knl_Task_Module_State_0_readyQ__A                         
