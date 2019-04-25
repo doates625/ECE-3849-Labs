@@ -331,9 +331,6 @@ void PwmHwiFunc(void)
     PWM0_0_CMPB_R = 1 + gPWMWaveformTable[gPhase >> (32 - PWM_INDEX_BITS)];
 }
 
-
-
-
 /**
  * ADC sampling ISR
  */
