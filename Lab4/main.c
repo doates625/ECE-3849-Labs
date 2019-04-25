@@ -1,7 +1,7 @@
 /**
  * main.c
  *
- * ECE-3849 Lab 4 code submission
+ * ECE-3849 Lab 3 code submission
  * Submitted X-XX-2019
  *
  * Hardware:
